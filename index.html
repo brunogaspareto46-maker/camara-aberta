@@ -1,0 +1,853 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Sob Vigia</title>
+<meta name="description" content="Projetos de lei, requerimentos e avaliação da atuação dos vereadores de Gravataí (RS).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Vollkorn:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="static/estilo.css">
+<link rel="icon" href="static/icone.png" type="image/png">
+<link rel="apple-touch-icon" href="static/icone.png">
+</head>
+<body>
+<header class="topo">
+  <div class="largura">
+    <a class="marca" href="index.html">
+      <img class="logo logo-claro" src="static/logo-claro.png" alt="Sob Vigia — Revista" width="1200" height="349">
+      <img class="logo logo-escuro" src="static/logo-escuro.png" alt="" aria-hidden="true" width="1200" height="349">
+    </a>
+    <nav aria-label="Seções">
+      <a href="index.html#inicio">Início</a>
+      <a href="index.html#noticias">Notícias e opinião</a>
+      <a href="index.html#colunistas">Colunistas</a>
+      <a href="propostas.html">Câmara × Propostas</a>
+      <a href="projetos.html">Projetos e requerimentos</a>
+      <a href="sobre.html">Sobre nós</a>
+    </nav>
+  </div>
+</header>
+
+<main class="largura">
+
+<section id="destaques" class="destaques" data-v="inicio" aria-labelledby="dt-titulo" hidden>
+  <div class="secao-cab"><h2 id="dt-titulo">Destaques</h2></div>
+  <div class="grade-destaques" id="dt-grade"></div>
+</section>
+
+<section id="opinioes-inicio" class="opinioes-inicio" data-v="inicio" aria-labelledby="op-titulo" hidden>
+  <div class="secao-cab"><h2 id="op-titulo">Opinião</h2><a class="ver-todos" href="#colunistas">Todos os colunistas →</a></div>
+  <div class="grade-opinioes" id="op-grade"></div>
+</section>
+
+<section id="colunistas" class="colunistas" data-v="colunistas" aria-labelledby="cl-titulo">
+  <h2 id="cl-titulo">Colunistas</h2>
+  <p class="intro">Quem escreve as colunas de opinião do site. Clique em um nome para ver o perfil e tudo o que a pessoa publicou.</p>
+  <div class="grade-colunistas" id="cl-grade"><p class="mudo">Carregando…</p></div>
+</section>
+
+<section id="colunista-perfil" class="colunista-perfil" data-v="colunista" aria-live="polite"></section>
+
+<section id="noticias" class="noticias" data-v="noticias" aria-labelledby="nt-titulo">
+  <div class="secao-cab">
+    <h2 id="nt-titulo">Notícias e opinião</h2>
+    
+  </div>
+  <div id="nt-editor-slot"></div>
+  <div class="capa" id="nt-capa">
+    <div class="capa-vazia"><p id="nt-estado">Carregando as publicações…</p></div>
+  </div>
+  <details id="nt-mais" hidden><summary class="rotulo-cat">Mais publicações</summary><ul class="lista-proj" id="nt-mais-lista"></ul></details>
+</section>
+
+<article id="nt-materia" class="pagina-materia" data-v="materia" aria-live="polite"></article>
+
+
+
+<script>
+(function () {
+  "use strict";
+  var COL = "noticias";
+  var capa = document.getElementById("nt-capa");
+  var estado = document.getElementById("nt-estado");
+  var secao = document.getElementById("noticias");
+  var mais = document.getElementById("nt-mais");
+  var maisLista = document.getElementById("nt-mais-lista");
+  var materia = document.getElementById("nt-materia");
+  var btnEscrever = document.getElementById("nt-escrever");
+  var slot = document.getElementById("nt-editor-slot");
+  var db = null, assets = null, podeEditar = false, itens = [], carregou = false;
+  var DESTAQUES = "site/destaques", destaques = [];
+
+  function el(tag, cls, texto) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (texto != null) e.textContent = texto;
+    return e;
+  }
+  // Fotos: guardamos só o id do arquivo; o endereço se monta a partir dele
+  function idValido(id) { return typeof id === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(id); }
+  var PUBLICO = true, FOTOS = {};
+  var URL_PUBLICA = "https://sobvigia.com.br/";   // endereço do site público (para os links de compartilhar)
+  function urlFoto(id) { return !idValido(id) ? "" : PUBLICO ? (FOTOS[id] || "") : "/_blob/" + id; }
+  function img(id, cls, alt) {
+    var u = urlFoto(id); if (!u) return null;
+    var i = el("img", cls); i.src = u; i.alt = alt || ""; i.loading = "lazy";
+    i.onerror = function () { i.remove(); };   // arquivo indisponível: some sem quebrar o layout
+    return i;
+  }
+  function data(iso, comHora) {
+    var d = new Date(iso); if (isNaN(d)) return "";
+    var s = d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" }).replace(/\./g, "").toUpperCase();
+    if (comHora) s += ", " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    return s;
+  }
+  function rotuloTipo(n) { return n.tipo === "opiniao" ? "Opinião" : (n.categoria || "Notícia"); }
+  function byline(n) { return (n.autor || "") + (n.publicado_em ? " | " + data(n.publicado_em) : ""); }
+  function slug(t) {
+    return String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "texto";
+  }
+  function paragrafos(alvo, texto) {
+    String(texto || "").split(/\n\s*\n/).forEach(function (par) {
+      par = par.trim(); if (par) alvo.appendChild(el("p", null, par.replace(/\s*\n\s*/g, " ")));
+    });
+  }
+
+  // ---------- capa ----------
+  function linkMateria(n, filho) { var a = el("a", "titulo"); a.href = "#materia-" + n.id; a.appendChild(filho); return a; }
+  function cartaoNoticia(n, tamanho) {
+    var art = el("article", "cartao-" + tamanho);
+    var txt = el("div", "cartao-texto");
+    txt.appendChild(el("span", "rotulo-cat", rotuloTipo(n)));
+    txt.appendChild(linkMateria(n, el("h3", null, n.titulo)));
+    txt.appendChild(el("span", "byline", byline(n)));
+    if (n.linha_fina && (tamanho === "grande" || tamanho === "destaque")) txt.appendChild(el("p", "linha-fina", n.linha_fina));
+    art.appendChild(txt);
+    var f = img(n.foto, "cartao-foto", n.foto_legenda || n.titulo);
+    if (f) art.appendChild(linkMateria(n, f));
+    return art;
+  }
+  function cartaoOpiniao(n) {
+    var art = el("article", "cartao-opiniao");
+    var f = img(n.autor_foto, "avatar", n.autor);
+    if (f) art.appendChild(f);
+    var txt = el("div");
+    txt.appendChild(el("span", "colunista-nome", n.autor || ""));
+    txt.appendChild(linkMateria(n, el("h3", null, n.titulo)));
+    txt.appendChild(el("span", "byline", data(n.publicado_em)));
+    art.appendChild(txt);
+    return art;
+  }
+  function renderCapa() {
+    capa.textContent = "";
+    var noticias = itens.filter(function (n) { return n.tipo !== "opiniao"; });
+    var opinioes = itens.filter(function (n) { return n.tipo === "opiniao"; });
+    if (!itens.length) {
+      var v = el("div", "capa-vazia");
+      v.appendChild(el("p", null, podeEditar ? "Ainda não há publicações. Use o botão Escrever para publicar a primeira notícia ou coluna."
+                                              : "Ainda não há publicações."));
+      capa.appendChild(v); mais.hidden = true; return;
+    }
+    var principal = noticias[0];
+    var mostrados = [];
+    if (principal) {
+      var p = cartaoNoticia(principal, "grande"); p.classList.add("capa-principal");
+      capa.appendChild(p); mostrados.push(principal);
+      var lista = el("div", "capa-lista");
+      noticias.slice(1, 4).forEach(function (n) { lista.appendChild(cartaoNoticia(n, "medio")); mostrados.push(n); });
+      if (lista.childNodes.length) capa.appendChild(lista); else p.classList.add("largo");
+    }
+    var op = el("aside", "capa-opiniao");
+    op.appendChild(el("h2", null, "Opinião"));
+    var ops = opinioes.slice(0, 4);
+    if (ops.length) ops.forEach(function (n) { op.appendChild(cartaoOpiniao(n)); mostrados.push(n); });
+    else op.appendChild(el("p", "mudo", "Nenhuma coluna publicada ainda."));
+    if (!principal) op.classList.add("largo");
+    capa.appendChild(op);
+    var resto = itens.filter(function (n) { return mostrados.indexOf(n) < 0; });
+    maisLista.textContent = "";
+    resto.forEach(function (n) {
+      var li = el("li"); var a = el("a", null, n.titulo); a.href = "#materia-" + n.id;
+      li.appendChild(a); li.appendChild(el("span", "mudo", " · " + rotuloTipo(n) + " · " + byline(n)));
+      maisLista.appendChild(li);
+    });
+    mais.hidden = !resto.length;
+    // sugestões de colunistas já publicados no editor
+    var dl = document.getElementById("ed-autores"); if (!dl) return;   // site público: não há editor
+    dl.textContent = "";
+    Array.from(new Set(itens.map(function (n) { return n.autor; }).filter(Boolean))).forEach(function (a) {
+      var o = el("option"); o.value = a; dl.appendChild(o);
+    });
+  }
+
+  // ---------- compartilhar ----------
+  // O link aponta para n/<id>.html do site público: uma página curta com título, resumo e foto
+  // (o que WhatsApp, X e Instagram mostram na prévia) que redireciona para a matéria.
+  var ICONES = {
+    whatsapp: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2.2a9.7 9.7 0 0 0-8.4 14.6L2.3 21.7l5-1.3A9.7 9.7 0 1 0 12 2.2Zm0 17.7c-1.5 0-3-.4-4.2-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8 8 0 1 1 12 19.9Z"/><path fill="currentColor" d="M16.5 14.1c-.2-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.6.1l-.8 1c-.1.2-.3.2-.5.1a6.6 6.6 0 0 1-3.3-2.9c-.2-.4.2-.4.7-1.3.1-.2 0-.3 0-.5l-.8-1.8c-.2-.5-.4-.4-.6-.4h-.5a1 1 0 0 0-.7.3 3 3 0 0 0-.9 2.2c0 1.3 1 2.6 1.1 2.8.1.2 1.9 2.9 4.6 4 1.7.7 2.4.8 3.2.7.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.2-1.2-.1-.1-.2-.2-.5-.3Z"/></svg>',
+    x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M18.9 1.2h3.7l-8 9.2L24 22.8h-7.4l-5.8-7.6-6.6 7.6H.5l8.6-9.8L0 1.2h7.6l5.2 6.9 6.1-6.9Zm-1.3 19.5h2L6.5 3.2H4.3l13.3 17.5Z"/></svg>',
+    instagram: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="5.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.6" cy="6.4" r="1.3" fill="currentColor"/></svg>',
+    link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M10 14a4.5 4.5 0 0 0 6.4 0l3.2-3.2a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2M14 10a4.5 4.5 0 0 0-6.4 0l-3.2 3.2a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2"/></svg>'
+  };
+  function linkPublico(n) {
+    var base = PUBLICO ? location.href.split("#")[0].replace(/[^\/]*$/, "") : URL_PUBLICA;
+    return base ? base + "n/" + encodeURIComponent(n.id) + ".html" : "";
+  }
+  function copiar(texto, aviso, msg) {
+    var ok = function () { aviso.textContent = msg; };
+    var manual = function () { window.prompt("Copie o link:", texto); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, manual);
+    else manual();
+  }
+  function compartilhar(n) {
+    var box = el("div", "compartilhar");
+    box.appendChild(el("span", "compartilhar-rotulo", "Compartilhe"));
+    var url = linkPublico(n);
+    if (!url) {
+      box.appendChild(el("span", "mudo", "Os botões de compartilhar funcionam no site público, depois que ele estiver no ar."));
+      return box;
+    }
+    var texto = n.titulo + (n.linha_fina ? " — " + n.linha_fina : "");
+    var aviso = el("span", "mudo compartilhar-aviso");
+    function icone(no, nome, chave) {
+      no.className = "icone-rede cp-" + chave;
+      no.setAttribute("aria-label", nome); no.title = nome;
+      no.innerHTML = ICONES[chave];          // SVG fixo, definido abaixo (sem conteúdo de usuário)
+      return no;
+    }
+    function botao(nome, href, chave) {
+      var a = icone(document.createElement("a"), "Compartilhar no " + nome, chave);
+      a.href = href; a.target = "_blank"; a.rel = "noopener";
+      box.appendChild(a); return a;
+    }
+    botao("WhatsApp", "https://wa.me/?text=" + encodeURIComponent(texto + " " + url), "whatsapp");
+    botao("X", "https://x.com/intent/tweet?text=" + encodeURIComponent(n.titulo) + "&url=" + encodeURIComponent(url), "x");
+    // Instagram não aceita links vindos de sites: no celular abre o menu de compartilhar do aparelho
+    // (onde aparece o Instagram); no computador, copia o link para colar no story ou na bio.
+    var ig = icone(document.createElement("button"), "Compartilhar no Instagram", "instagram"); ig.type = "button";
+    ig.onclick = function () {
+      if (navigator.share) navigator.share({ title: n.titulo, text: texto, url: url }).catch(function () {});
+      else copiar(url, aviso, "Link copiado. No Instagram, cole no story (figurinha de link) ou na bio.");
+    };
+    box.appendChild(ig);
+    var cp = icone(document.createElement("button"), "Copiar link", "link"); cp.type = "button";
+    cp.onclick = function () { copiar(url, aviso, "Link copiado."); };
+    box.appendChild(cp);
+    box.appendChild(aviso);
+    return box;
+  }
+
+  // ---------- página da matéria ----------
+  function mostrarMateria(id) {
+    var n = itens.filter(function (x) { return x.id === id; })[0];
+    materia.textContent = "";
+    if (!n) {
+      if (!carregou) return;
+      materia.appendChild(el("p", "mudo", "Esta publicação não foi encontrada. Ela pode ter sido removida."));
+    } else {
+      var voltar = el("a", "voltar", "← Notícias e opinião"); voltar.href = "#noticias";
+      if (n.tipo !== "opiniao") {
+        var hero = img(n.foto, "materia-hero", n.foto_legenda || n.titulo);
+        if (hero) materia.appendChild(hero);
+      }
+      var col = el("div", "materia");
+      col.appendChild(voltar);
+      if (n.tipo === "opiniao") {
+        var cab = el("div", "colunista");
+        var av = img(n.autor_foto, "avatar grande", n.autor); if (av) cab.appendChild(av);
+        var info = el("div");
+        info.appendChild(el("span", "rotulo-secao", "Colunistas"));
+        var nomeLink = el("a", "colunista-nome grande", n.autor || ""); nomeLink.href = "#colunista-" + slug(n.autor || "");
+        info.appendChild(nomeLink);
+        if (n.autor_bio) info.appendChild(el("p", "colunista-bio", n.autor_bio));
+        cab.appendChild(info); col.appendChild(cab);
+      } else {
+        var cat = el("p"); cat.appendChild(el("span", "rotulo-cat", rotuloTipo(n))); col.appendChild(cat);
+      }
+      col.appendChild(el("h1", null, n.titulo));
+      if (n.linha_fina) col.appendChild(el("p", "linha-fina", n.linha_fina));
+      if (n.tipo !== "opiniao") col.appendChild(el("p", "materia-autor", n.autor || ""));
+      col.appendChild(el("p", "materia-data", data(n.publicado_em, true)));
+      if (n.tipo !== "opiniao" && urlFoto(n.foto) && (n.foto_legenda || n.foto_credito)) {
+        var leg = el("p", "foto-legenda");
+        leg.appendChild(el("span", null, "Foto: "));
+        if (n.foto_legenda) leg.appendChild(el("em", null, n.foto_legenda + "."));
+        if (n.foto_credito) leg.appendChild(document.createTextNode(" (" + n.foto_credito + ")"));
+        col.appendChild(leg);
+      }
+      var corpo = el("div", "corpo"); paragrafos(corpo, n.corpo); col.appendChild(corpo);
+      col.appendChild(compartilhar(n));
+      if (n.tipo === "opiniao") col.appendChild(el("p", "aviso-opiniao", "Colunas de opinião expressam a visão de quem as assina."));
+      if (podeEditar) col.appendChild(acoesEditor(n));
+      materia.appendChild(col);
+      document.title = n.titulo + " · Sob Vigia";
+    }
+  }
+  var tituloOriginal = document.title;
+  // Abas da página principal: cada seção diz a que aba pertence (data-v)
+  function vista(nome, ancora) {
+    document.body.setAttribute("data-vista", nome);
+    Array.prototype.forEach.call(document.querySelectorAll(".topo nav a"), function (a) {
+      var alvo = (a.getAttribute("href") || "").split("#")[1];
+      if (alvo === ancora) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+  }
+  function rota(rolar) {
+    var h = location.hash.slice(1);
+    if (h.indexOf("materia-") === 0) { mostrarMateria(h.slice(8)); vista("materia", "noticias"); if (rolar) window.scrollTo(0, 0); return; }
+    document.title = tituloOriginal;
+    if (h === "noticias") vista("noticias", "noticias");
+    else if (h === "colunistas") vista("colunistas", "colunistas");
+    else if (h.indexOf("colunista-") === 0) { mostrarColunista(h.slice(10)); vista("colunista", "colunistas"); }
+    else vista("inicio", "inicio");
+    if (!rolar) return;
+    else window.scrollTo(0, 0);
+  }
+
+  // ---------- destaques da página inicial (escolhidos pelos admins) ----------
+  function renderDestaques() {
+    var sec = document.getElementById("destaques"), grade = document.getElementById("dt-grade");
+    var noticias = itens.filter(function (n) { return n.tipo !== "opiniao"; });
+    var escolhidos = destaques.map(function (id) { return itens.filter(function (n) { return n.id === id; })[0]; }).filter(Boolean);
+    var lista = escolhidos.length ? escolhidos : noticias.slice(0, 3);   // sem escolha: as 3 mais recentes
+    grade.textContent = "";
+    lista.forEach(function (n) {
+      var c = n.tipo === "opiniao" ? cartaoOpiniao(n) : cartaoNoticia(n, "destaque");
+      if (podeEditar && escolhidos.length) {
+        var b = el("button", "botao secundario pequeno", "Tirar dos destaques"); b.type = "button";
+        b.onclick = function () { alternarDestaque(n.id); };
+        c.appendChild(b);
+      }
+      grade.appendChild(c);
+    });
+    sec.hidden = !lista.length;
+  }
+  function renderOpinioesInicio() {
+    var sec = document.getElementById("opinioes-inicio"), grade = document.getElementById("op-grade");
+    var ops = itens.filter(function (n) { return n.tipo === "opiniao"; }).slice(0, 4);
+    grade.textContent = "";
+    ops.forEach(function (n) { grade.appendChild(cartaoOpiniao(n)); });
+    sec.hidden = !ops.length;
+  }
+  function alternarDestaque(id, aviso) {
+    var novo = destaques.indexOf(id) >= 0 ? destaques.filter(function (x) { return x !== id; }) : destaques.concat([id]);
+    if (novo.length > 3) { if (aviso) aviso.textContent = "Já há 3 destaques. Tire um deles antes de escolher outro."; return; }
+    db.doc(DESTAQUES).set({ ids: novo, atualizado_em: new Date().toISOString() })
+      .catch(function () { if (aviso) aviso.textContent = "Não foi possível alterar os destaques agora."; });
+  }
+
+  // ---------- colunistas ----------
+  function colunistas() {
+    var mapa = {};
+    itens.forEach(function (n) {
+      if (n.tipo !== "opiniao" || !n.autor) return;
+      var s = slug(n.autor);
+      if (!mapa[s]) mapa[s] = { slug: s, nome: n.autor, bio: n.autor_bio || "", foto: n.autor_foto || "", colunas: [] };
+      var c = mapa[s]; c.colunas.push(n);              // itens vêm do mais recente: o perfil é o da coluna mais nova
+      if (!c.bio && n.autor_bio) c.bio = n.autor_bio;
+      if (!c.foto && n.autor_foto) c.foto = n.autor_foto;
+    });
+    return Object.keys(mapa).map(function (k) { return mapa[k]; })
+      .sort(function (a, b) { return a.nome.localeCompare(b.nome, "pt-BR"); });
+  }
+  function renderColunistas() {
+    var grade = document.getElementById("cl-grade"); grade.textContent = "";
+    var lista = colunistas();
+    if (!lista.length) { grade.appendChild(el("p", "mudo", "Ainda não há colunas publicadas.")); return; }
+    lista.forEach(function (c) {
+      var a = el("a", "cartao-colunista"); a.href = "#colunista-" + c.slug;
+      var f = img(c.foto, "avatar grande", c.nome); if (f) a.appendChild(f); else a.appendChild(el("span", "avatar grande avatar-vazio"));
+      var t = el("div");
+      t.appendChild(el("span", "colunista-nome grande", c.nome));
+      if (c.bio) t.appendChild(el("p", "colunista-bio", c.bio));
+      t.appendChild(el("span", "byline", c.colunas.length + (c.colunas.length === 1 ? " coluna" : " colunas")));
+      a.appendChild(t); grade.appendChild(a);
+    });
+  }
+  function mostrarColunista(s) {
+    var alvo = document.getElementById("colunista-perfil"); alvo.textContent = "";
+    var c = colunistas().filter(function (x) { return x.slug === s; })[0];
+    var voltar = el("a", "voltar", "← Colunistas"); voltar.href = "#colunistas"; alvo.appendChild(voltar);
+    if (!c) { if (carregou) alvo.appendChild(el("p", "mudo", "Colunista não encontrado.")); return; }
+    var cab = el("div", "colunista");
+    var av = img(c.foto, "avatar grande", c.nome); if (av) cab.appendChild(av);
+    var info = el("div");
+    info.appendChild(el("span", "rotulo-secao", "Colunistas"));
+    info.appendChild(el("h1", "colunista-nome grande", c.nome));
+    if (c.bio) info.appendChild(el("p", "colunista-bio", c.bio));
+    cab.appendChild(info); alvo.appendChild(cab);
+    alvo.appendChild(el("h2", null, "Colunas publicadas"));
+    var ul = el("ul", "lista-colunas");
+    c.colunas.forEach(function (n) {
+      var li = el("li"); var a = el("a", null, n.titulo); a.href = "#materia-" + n.id;
+      li.appendChild(a);
+      if (n.linha_fina) li.appendChild(el("p", "mudo", n.linha_fina));
+      li.appendChild(el("span", "byline", data(n.publicado_em)));
+      ul.appendChild(li);
+    });
+    alvo.appendChild(ul);
+    document.title = c.nome + " · Colunistas · Sob Vigia";
+  }
+
+  // ---------- fotos: reduz e envia ----------
+  function reduzir(arquivo, opcoes) {
+    return new Promise(function (ok, erro) {
+      var u = URL.createObjectURL(arquivo), im = new Image();
+      im.onload = function () {
+        var w = im.naturalWidth, h = im.naturalHeight, sx = 0, sy = 0, sw = w, sh = h;
+        if (opcoes.quadrado) { var lado = Math.min(w, h); sx = (w - lado) / 2; sy = (h - lado) / 2; sw = sh = lado; }
+        var escala = Math.min(1, opcoes.max / Math.max(sw, sh));
+        var c = document.createElement("canvas");
+        c.width = Math.round(sw * escala); c.height = Math.round(sh * escala);
+        c.getContext("2d").drawImage(im, sx, sy, sw, sh, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(u);
+        c.toBlob(function (b) { b ? ok(b) : erro(new Error("conversão")); }, "image/jpeg", 0.85);
+      };
+      im.onerror = function () { URL.revokeObjectURL(u); erro(new Error("imagem inválida")); };
+      im.src = u;
+    });
+  }
+  function mensagemUpload(e) {
+    var c = e && e.code;
+    if (c === "too_large") return "A foto é grande demais. Escolha outra.";
+    if (c === "unsupported_type") return "Formato não aceito. Use JPG, PNG ou WebP.";
+    if (c === "quota_or_state") return "O espaço para fotos do site está cheio.";
+    if (c === "not_granted" || c === "capability_disabled") return "Sua conta não pode enviar fotos neste site.";
+    if (e && e.message === "imagem inválida") return "Não foi possível ler essa imagem.";
+    return "Não foi possível enviar a foto agora. Tente de novo.";
+  }
+
+  // ---------- edição ----------
+  function acoesEditor(n) {
+    var box = el("div", "materia-acoes");
+    var ed = el("button", "botao secundario", "Editar"); ed.type = "button";
+    ed.onclick = function () { location.hash = "noticias"; abrirEditor(n); };
+    var del = el("button", "botao secundario", "Apagar"); del.type = "button";
+    del.onclick = function () {
+      if (box.querySelector(".confirmar")) return;
+      var c = el("div", "confirmar");
+      c.appendChild(el("span", null, "Apagar esta publicação de vez?"));
+      var sim = el("button", "botao", "Sim, apagar"); sim.type = "button";
+      var nao = el("button", "botao secundario", "Cancelar"); nao.type = "button";
+      sim.onclick = function () {
+        sim.disabled = true;
+        db.collection(COL).doc(n.id).delete().then(function () {
+          // a foto da notícia sai junto, se nenhuma outra publicação usar o mesmo arquivo
+          if (assets && idValido(n.foto) && !itens.some(function (x) { return x.id !== n.id && (x.foto === n.foto || x.autor_foto === n.foto); }))
+            assets.delete(n.foto).catch(function () {});
+          location.hash = "noticias";
+        }).catch(function () { c.firstChild.textContent = "Não foi possível apagar agora. Tente de novo."; sim.disabled = false; });
+      };
+      nao.onclick = function () { c.remove(); };
+      c.appendChild(sim); c.appendChild(nao); box.appendChild(c);
+    };
+    var aviso = el("p", "mudo aviso-destaque");
+    var dest = el("button", "botao secundario", destaques.indexOf(n.id) >= 0 ? "Tirar dos destaques" : "Destacar na página inicial");
+    dest.type = "button";
+    dest.onclick = function () { alternarDestaque(n.id, aviso); };
+    box.appendChild(dest); box.appendChild(ed); box.appendChild(del); box.appendChild(aviso);
+    return box;
+  }
+
+  function abrirEditor(existente) {
+    slot.textContent = "";
+    var form = document.getElementById("nt-form").content.firstElementChild.cloneNode(true);
+    var f = function (nome) { return form.elements[nome]; };
+    var status = form.querySelector(".status");
+    var fotos = { foto: existente ? existente.foto || "" : "", autor_foto: existente ? existente.autor_foto || "" : "" };
+    var enviadasAgora = [];   // fotos enviadas nesta edição (apagadas se a pessoa desistir)
+
+    function mostrarFoto(campo) {
+      var alvo = form.querySelector('[data-preview="' + campo + '"]'); alvo.textContent = "";
+      var i = img(fotos[campo], campo === "autor_foto" ? "avatar grande" : "preview-capa", "Prévia");
+      if (i) alvo.appendChild(i);
+      form.querySelector('[data-remover="' + campo + '"]').hidden = !fotos[campo];
+    }
+    function alternarTipo() {
+      var op = f("tipo").value === "opiniao";
+      form.querySelector(".so-opiniao").hidden = !op;
+      form.querySelector(".so-noticia").hidden = op;
+    }
+    if (existente) {
+      form.querySelector(".ed-titulo").textContent = "Editar publicação";
+      ["tipo", "categoria", "autor", "autor_bio", "titulo", "linha_fina", "foto_legenda", "foto_credito", "corpo"]
+        .forEach(function (k) { f(k).value = existente[k] || ""; });
+    }
+    alternarTipo(); mostrarFoto("foto"); mostrarFoto("autor_foto");
+    f("tipo").onchange = alternarTipo;
+
+    // colunista que já publicou: preenche foto e minibiografia
+    f("autor").addEventListener("change", function () {
+      var nome = f("autor").value.trim().toLowerCase();
+      var ant = itens.filter(function (x) { return x.tipo === "opiniao" && String(x.autor || "").toLowerCase() === nome; })[0];
+      if (!ant) return;
+      if (!f("autor_bio").value && ant.autor_bio) f("autor_bio").value = ant.autor_bio;
+      if (!fotos.autor_foto && ant.autor_foto) { fotos.autor_foto = ant.autor_foto; mostrarFoto("autor_foto"); }
+    });
+
+    Array.prototype.forEach.call(form.querySelectorAll("[data-upload]"), function (input) {
+      var campo = input.getAttribute("data-upload");
+      if (!assets) { input.closest("label").hidden = true; return; }
+      input.onchange = function () {
+        var arq = input.files && input.files[0]; if (!arq) return;
+        status.textContent = "Enviando a foto…";
+        var botao = form.querySelector('[type="submit"]'); botao.disabled = true;
+        reduzir(arq, campo === "autor_foto" ? { max: 480, quadrado: true } : { max: 1800 })
+          .then(function (b) { return assets.upload(b, { type: "image/jpeg" }); })
+          .then(function (r) { fotos[campo] = r.id; enviadasAgora.push(r.id); mostrarFoto(campo); status.textContent = "Foto pronta."; })
+          .catch(function (e) { status.textContent = mensagemUpload(e); })
+          .then(function () { botao.disabled = false; input.value = ""; });
+      };
+    });
+    Array.prototype.forEach.call(form.querySelectorAll("[data-remover]"), function (b) {
+      b.onclick = function () { fotos[b.getAttribute("data-remover")] = ""; mostrarFoto(b.getAttribute("data-remover")); };
+    });
+
+    form.querySelector('[data-acao="cancelar"]').onclick = function () {
+      enviadasAgora.forEach(function (id) { if (assets) assets.delete(id).catch(function () {}); });
+      slot.textContent = ""; btnEscrever.hidden = !podeEditar;
+    };
+    form.onsubmit = function (ev) {
+      ev.preventDefault();
+      var opiniao = f("tipo").value === "opiniao";
+      var dados = {
+        tipo: opiniao ? "opiniao" : "noticia",
+        categoria: f("categoria").value.trim(), autor: f("autor").value.trim(),
+        titulo: f("titulo").value.trim(), linha_fina: f("linha_fina").value.trim(), corpo: f("corpo").value.trim()
+      };
+      if (opiniao) { dados.autor_bio = f("autor_bio").value.trim(); dados.autor_foto = fotos.autor_foto; }
+      else { dados.foto = fotos.foto; dados.foto_legenda = f("foto_legenda").value.trim(); dados.foto_credito = f("foto_credito").value.trim(); }
+      if (!dados.titulo || !dados.autor || !dados.corpo) { status.textContent = "Preencha título, autor e texto."; return; }
+      var agora = new Date().toISOString();
+      dados.publicado_em = existente ? existente.publicado_em : agora;
+      dados.atualizado_em = agora;
+      var id = existente ? existente.id : slug(dados.titulo) + "-" + Date.now().toString(36);
+      var botao = form.querySelector('[type="submit"]'); botao.disabled = true;
+      status.textContent = "Publicando…";
+      db.collection(COL).doc(id).set(dados).then(function () {
+        // fotos enviadas nesta edição e depois trocadas não ficam órfãs
+        enviadasAgora.forEach(function (fid) { if (fid !== dados.foto && fid !== dados.autor_foto && assets) assets.delete(fid).catch(function () {}); });
+        slot.textContent = ""; btnEscrever.hidden = false;
+        location.hash = "materia-" + id;
+      }).catch(function (e) {
+        botao.disabled = false;
+        status.textContent = e && e.code === "invalid_argument"
+          ? "Sua conta não tem permissão para publicar aqui, ou o texto está grande demais."
+          : e && e.code === "quota_exceeded" ? "O espaço de publicações está cheio. Apague textos antigos para publicar novos."
+          : "Não foi possível publicar agora. Tente de novo em instantes.";
+      });
+    };
+    slot.appendChild(form);
+    btnEscrever.hidden = true;
+    f("titulo").focus();
+  }
+  if (btnEscrever) btnEscrever.onclick = function () { abrirEditor(null); };
+
+  // ---------- carga ----------
+  window.addEventListener("hashchange", function () { rota(true); });
+  var temporizador = setTimeout(function () {
+    if (!carregou) estado.textContent = "Não foi possível carregar as publicações agora. Tente recarregar a página mais tarde.";
+  }, 10000);
+  if (PUBLICO) {   // site público: conteúdo exportado do painel de edição, só leitura
+    fetch("conteudo.json").then(function (r) { if (!r.ok) throw r; return r.json(); }).then(function (c) {
+      FOTOS = (c && c.fotos) || {};
+      destaques = (c && Array.isArray(c.destaques) ? c.destaques : []).filter(function (x) { return typeof x === "string"; }).slice(0, 3);
+      itens = ((c && c.noticias) || []).filter(function (x) { return x && x.titulo && x.corpo; })
+        .sort(function (a, b) { return String(b.publicado_em || "").localeCompare(String(a.publicado_em || "")); });
+      carregou = true; clearTimeout(temporizador);
+      renderCapa(); renderDestaques(); renderOpinioesInicio(); renderColunistas(); rota();
+    }).catch(function () { clearTimeout(temporizador); estado.textContent = "Não foi possível carregar as publicações agora."; });
+    rota();
+    return;
+  }
+  if (!window.claude || !window.claude.use) {
+    clearTimeout(temporizador);
+    estado.textContent = "As publicações aparecem quando o site é aberto no claude.ai.";
+    document.getElementById("cl-grade").textContent = "";
+    return;
+  }
+  Promise.all([window.claude.use("db"), window.claude.use("user"), window.claude.use("assets")]).then(function (r) {
+    db = r[0]; var user = r[1]; assets = r[2];
+    if (!db) { clearTimeout(temporizador); estado.textContent = "Entre na sua conta do claude.ai para ver as publicações."; return; }
+    podeEditar = !!(user && user.canEdit && user.canEdit());
+    btnEscrever.hidden = !podeEditar;
+    db.doc(DESTAQUES).onSnapshot(function (s) {
+      var d = s.exists ? s.data() : null;
+      destaques = d && Array.isArray(d.ids) ? d.ids.filter(function (x) { return typeof x === "string"; }).slice(0, 3) : [];
+      renderDestaques(); rota();
+    }, function () {});
+    db.collection(COL).orderBy("publicado_em", "desc").limit(200).onSnapshot(function (snap) {
+      itens = snap.docs.map(function (d) { var x = Object.assign({}, d.data()); x.id = d.id; return x; })
+        .filter(function (x) { return x.titulo && x.corpo; });
+      if (!snap.metadata.fromCache) { carregou = true; clearTimeout(temporizador); }
+      renderCapa(); renderDestaques(); renderOpinioesInicio(); renderColunistas(); rota();
+    }, function () { clearTimeout(temporizador); estado.textContent = "Não foi possível carregar as publicações agora."; });
+  });
+  rota();
+})();
+</script>
+
+<section id="inicio" class="inicio" data-v="inicio" aria-label="Apresentação">
+  
+  <div id="in-blocos" class="inicio-blocos"></div>
+</section>
+
+
+<script type="application/json" id="in-padrao">
+{
+ "blocos": [
+  {
+   "estilo": "destaque",
+   "titulo": "Notícias, opinião e fiscalização da Câmara de Gravataí",
+   "texto": "Um site feito a partir da esquerda: publicamos notícias e colunas sobre a cidade e acompanhamos de perto o que os vereadores propõem, aprovam e deixam de fazer.\n\nQuando usamos dados da Câmara, damos o link para o documento original, para você conferir.",
+   "link_texto": "Leia as notícias",
+   "link_url": "#noticias"
+  },
+  {
+   "estilo": "cartao",
+   "titulo": "Câmara × Propostas",
+   "texto": "Tema por tema: o que a Câmara aprovou, o que ficou só no papel e o que propomos para a cidade. Com a lista dos vereadores e os 10 piores projetos.",
+   "link_texto": "Comparar",
+   "link_url": "propostas.html"
+  },
+  {
+   "estilo": "cartao",
+   "titulo": "Vereadores",
+   "texto": "Quem está na Câmara, de que partido e como se posiciona, a partir dos projetos que apresentou.",
+   "link_texto": "Ver os vereadores",
+   "link_url": "propostas.html#vereadores"
+  },
+  {
+   "estilo": "cartao",
+   "titulo": "Colunistas",
+   "texto": "As colunas de opinião do site e quem as escreve.",
+   "link_texto": "Ver colunistas",
+   "link_url": "#colunistas"
+  }
+ ]
+}
+</script>
+
+
+
+<script>
+(function () {
+  "use strict";
+  var DOC = "site/inicio";
+  var blocosEl = document.getElementById("in-blocos");
+  var barra = document.getElementById("in-barra");
+  var slot = document.getElementById("in-editor-slot");
+  var padrao = JSON.parse(document.getElementById("in-padrao").textContent).blocos;
+  var atual = padrao, db = null;
+
+  function el(tag, cls, texto) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (texto != null) e.textContent = texto;
+    return e;
+  }
+  // Só links internos do site, âncoras da página ou endereços https
+  function linkSeguro(u) {
+    u = String(u || "").trim();
+    if (!u) return "";
+    if (/^https:\/\//i.test(u)) return u;
+    if (/^#[A-Za-z0-9-]+$/.test(u)) return u;
+    if (/^[A-Za-z0-9_\-\/]+\.html(#[A-Za-z0-9-]+)?$/.test(u)) return u;
+    return "";
+  }
+  function limpar(lista) {
+    return (Array.isArray(lista) ? lista : []).slice(0, 30).map(function (b) {
+      return {
+        estilo: b && b.estilo === "cartao" ? "cartao" : "destaque",
+        titulo: String((b && b.titulo) || "").slice(0, 200),
+        texto: String((b && b.texto) || "").slice(0, 8000),
+        link_texto: String((b && b.link_texto) || "").slice(0, 80),
+        link_url: String((b && b.link_url) || "").slice(0, 500)
+      };
+    }).filter(function (b) { return b.titulo || b.texto; });
+  }
+
+  function render() {
+    blocosEl.textContent = "";
+    var grade = null;
+    atual.forEach(function (b) {
+      var bloco = el("article", b.estilo === "cartao" ? "in-cartao" : "in-destaque");
+      if (b.titulo) bloco.appendChild(el(b.estilo === "cartao" ? "h3" : "h1", null, b.titulo));
+      String(b.texto || "").split(/\n\s*\n/).forEach(function (par) {
+        par = par.trim(); if (par) bloco.appendChild(el("p", null, par.replace(/\s*\n\s*/g, " ")));
+      });
+      var href = linkSeguro(b.link_url);
+      if (b.link_texto && href) {
+        var a = el("a", b.estilo === "cartao" ? "in-link" : "botao", b.link_texto);
+        a.href = href;
+        if (/^https:/i.test(href)) a.rel = "noopener";
+        bloco.appendChild(a);
+      }
+      if (b.estilo === "cartao") {
+        if (!grade) { grade = el("div", "in-grade"); blocosEl.appendChild(grade); }
+        grade.appendChild(bloco);
+      } else { grade = null; blocosEl.appendChild(bloco); }
+    });
+  }
+
+  // ---------- editor ----------
+  function linhaBloco(b) {
+    var box = el("fieldset", "in-bloco");
+    box.innerHTML =
+      '<div class="linha">' +
+      '<label>Estilo <select data-k="estilo"><option value="destaque">Destaque</option><option value="cartao">Cartão</option></select></label>' +
+      '<label>Título <input data-k="titulo" maxlength="200"></label></div>' +
+      '<label>Texto <textarea data-k="texto" rows="4" maxlength="8000"></textarea></label>' +
+      '<div class="linha"><label>Texto do botão (opcional) <input data-k="link_texto" maxlength="80"></label>' +
+      '<label>Link do botão (ex.: propostas.html, #colunistas ou https://…) <input data-k="link_url" maxlength="500"></label></div>' +
+      '<div class="materia-acoes"><button type="button" class="botao secundario" data-mov="-1">Subir</button>' +
+      '<button type="button" class="botao secundario" data-mov="1">Descer</button>' +
+      '<button type="button" class="botao secundario" data-rem>Remover bloco</button></div>';
+    ["estilo", "titulo", "texto", "link_texto", "link_url"].forEach(function (k) {
+      box.querySelector('[data-k="' + k + '"]').value = b[k] || (k === "estilo" ? "cartao" : "");
+    });
+    box.querySelector("textarea").style.minHeight = "110px";
+    box.querySelector("[data-rem]").onclick = function () { box.remove(); };
+    Array.prototype.forEach.call(box.querySelectorAll("[data-mov]"), function (btn) {
+      btn.onclick = function () {
+        var d = Number(btn.getAttribute("data-mov"));
+        var alvo = d < 0 ? box.previousElementSibling : box.nextElementSibling;
+        if (alvo) box.parentNode.insertBefore(box, d < 0 ? alvo : alvo.nextElementSibling);
+      };
+    });
+    return box;
+  }
+  function lerFormulario(form) {
+    return Array.prototype.map.call(form.querySelectorAll(".in-bloco"), function (box) {
+      var o = {};
+      ["estilo", "titulo", "texto", "link_texto", "link_url"].forEach(function (k) { o[k] = box.querySelector('[data-k="' + k + '"]').value.trim(); });
+      return o;
+    });
+  }
+  function abrirEditor() {
+    slot.textContent = "";
+    var form = document.getElementById("in-form").content.firstElementChild.cloneNode(true);
+    var lista = form.querySelector(".in-lista");
+    var status = form.querySelector(".status");
+    atual.forEach(function (b) { lista.appendChild(linhaBloco(b)); });
+    form.querySelector('[data-acao="novo"]').onclick = function () { lista.appendChild(linhaBloco({ estilo: "cartao" })); };
+    form.querySelector('[data-acao="cancelar"]').onclick = function () { slot.textContent = ""; barra.hidden = false; };
+    form.querySelector('[data-acao="padrao"]').onclick = function () {
+      lista.textContent = ""; padrao.forEach(function (b) { lista.appendChild(linhaBloco(b)); });
+      status.textContent = "Conteúdo padrão carregado no editor. Salve para aplicar.";
+    };
+    form.onsubmit = function (ev) {
+      ev.preventDefault();
+      var blocos = limpar(lerFormulario(form));
+      var ruins = blocos.filter(function (b) { return b.link_url && !linkSeguro(b.link_url); });
+      if (ruins.length) { status.textContent = "Há um link inválido. Use um endereço do site (ex.: propostas.html), uma âncora (#noticias) ou um endereço https://."; return; }
+      if (!blocos.length) { status.textContent = "A página precisa de pelo menos um bloco com título ou texto."; return; }
+      var botao = form.querySelector('[type="submit"]'); botao.disabled = true;
+      status.textContent = "Salvando…";
+      db.doc(DOC).set({ blocos: blocos, atualizado_em: new Date().toISOString() }).then(function () {
+        slot.textContent = ""; barra.hidden = false;
+      }).catch(function (e) {
+        botao.disabled = false;
+        status.textContent = e && e.code === "invalid_argument"
+          ? "Sua conta não tem permissão para editar a página inicial, ou o conteúdo está grande demais."
+          : "Não foi possível salvar agora. Tente de novo em instantes.";
+      });
+    };
+    slot.appendChild(form);
+    barra.hidden = true;
+  }
+  var btnEditar = document.getElementById("in-editar");
+  if (btnEditar) btnEditar.onclick = abrirEditor;
+
+  // ---------- carga ----------
+  var PUBLICO = true;
+  // o site não tem mais chat: blocos antigos que apontavam para ele não aparecem
+  var semChat = function (l) { return l.filter(function (b) { return b.link_url !== "#chat"; }); };
+  if (PUBLICO) {   // site público: sem edição; conteúdo vem do conteudo.json
+    render();
+    fetch("conteudo.json").then(function (r) { return r.json(); }).then(function (c) {
+      var b = semChat(limpar(c && c.inicio && c.inicio.blocos));
+      if (b.length) { atual = b; render(); }
+    }).catch(function () {});
+    return;
+  }
+  render();   // conteúdo padrão já na primeira pintura
+  if (!window.claude || !window.claude.use) return;
+  Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function (r) {
+    db = r[0];
+    var user = r[1];
+    if (!db) return;
+    barra.hidden = !(user && user.canEdit && user.canEdit());
+    db.doc(DOC).onSnapshot(function (snap) {
+      if (snap.exists) {
+        var b = limpar((snap.data() || {}).blocos);
+        b = semChat(b);
+        if (b.length) { atual = b; render(); }
+      }
+    }, function () { /* fica o conteúdo padrão */ });
+  });
+})();
+</script>
+
+</main>
+<section class="newsletter" aria-labelledby="nl-titulo">
+  <div class="largura newsletter-grade">
+    <div>
+      <h2 id="nl-titulo">Jornalismo crítico e inteligente. Todos os dias, no seu e-mail</h2>
+      <p>Assine nossa newsletter e receba um boletim matinal exclusivo.</p>
+    </div>
+    <form class="nl-form" id="nl-form" method="post"
+          action="https://docs.google.com/forms/d/e/1FAIpQLSfDigVz4JAGC99yiYOFgWmzXIqnUGSy2i7Xwbu5zcpN3u__eQ/formResponse"
+          data-google="1">
+      <label class="nl-rotulo" for="nl-email">Seu e-mail</label>
+      <div class="nl-linha">
+        <input id="nl-email" name="entry.1596347694" type="email" required autocomplete="email" placeholder="seuemail@exemplo.com">
+        <button type="submit" class="botao">Assinar</button>
+      </div>
+      <p class="nl-aviso">Usamos seu e-mail só para enviar a newsletter. Você pode cancelar quando quiser, pelo link em cada boletim.</p>
+      <p class="nl-status" role="status"></p>
+    </form>
+  </div>
+</section>
+<script>
+(function () {
+  var f = document.getElementById("nl-form"); if (!f) return;
+  var st = f.querySelector(".nl-status");
+  f.addEventListener("submit", function (ev) {
+    var email = f.querySelector("input[type=email]");
+    if (!email.checkValidity()) { ev.preventDefault(); st.textContent = "Confira o e-mail digitado."; return; }
+    if (!f.getAttribute("action")) {   // serviço de newsletter ainda não configurado: nada é enviado nem guardado
+      ev.preventDefault(); st.textContent = "As inscrições abrem em breve. Volte daqui a alguns dias!"; return;
+    }
+    if (f.getAttribute("data-google")) {   // Formulário Google: a inscrição vai para a planilha do site
+      ev.preventDefault();
+      var botao = f.querySelector("button"); botao.disabled = true; st.textContent = "Enviando…";
+      fetch(f.getAttribute("action"), { method: "POST", mode: "no-cors", body: new FormData(f) })
+        .then(function () { st.textContent = "Inscrição feita! Você vai receber nosso boletim no seu e-mail."; f.reset(); })
+        .catch(function () {
+          // envio direto bloqueado (bloqueador de anúncios, rede ou página dentro do claude.ai):
+          // manda pelo próprio formulário, abrindo a confirmação do Google em outra aba
+          f.removeAttribute("data-google"); f.target = "_blank";
+          HTMLFormElement.prototype.submit.call(f);
+          f.setAttribute("data-google", "1"); f.removeAttribute("target");
+          st.textContent = "Abrimos a confirmação do Google em outra aba: se ela mostrar que a resposta foi registrada, está feito. Se nenhuma aba abriu, libere as janelas pop-up e tente de novo.";
+          f.reset();
+        })
+        .then(function () { botao.disabled = false; });
+      return;
+    }
+    st.textContent = "Quase lá! Confirme a inscrição na janela que abriu e no e-mail que vamos te enviar.";
+  });
+})();
+</script>
+<footer class="largura rodape">
+  Atualizado em 11/11/2026. Fonte: portal da Câmara Municipal de Gravataí (cmgravatai.rs.gov.br).
+  Análise: Claude e regras automáticas
+  · <a href="sobre.html">sobre nós</a> · <a href="sobre.html#linha-editorial">linha editorial</a> · <a href="dados.json">baixar dados (JSON)</a>
+</footer>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Eder da Silva Souza · Sob Vigia</title>
+<meta name="description" content="Projetos de lei, requerimentos e avaliação da atuação dos vereadores de Gravataí (RS).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Vollkorn:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<link rel="stylesheet" href="../static/estilo.css">
+<link rel="icon" href="../static/icone.png" type="image/png">
+<link rel="apple-touch-icon" href="../static/icone.png">
+</head>
+<body>
+<header class="topo">
+  <div class="largura">
+    <a class="marca" href="../index.html">
+      <img class="logo logo-claro" src="../static/logo-claro.png" alt="Sob Vigia — Revista" width="1200" height="349">
+      <img class="logo logo-escuro" src="../static/logo-escuro.png" alt="" aria-hidden="true" width="1200" height="349">
+    </a>
+    <nav aria-label="Seções">
+      <a href="../index.html#inicio">Início</a>
+      <a href="../index.html#noticias">Notícias e opinião</a>
+      <a href="../index.html#colunistas">Colunistas</a>
+      <a href="../propostas.html">Câmara × Propostas</a>
+      <a href="../projetos.html">Projetos e requerimentos</a>
+      <a href="../sobre.html">Sobre nós</a>
+    </nav>
+  </div>
+</header>
+
+<main class="largura">
+
+<p class="migalha"><a href="../propostas.html#vereadores">← Vereadores</a></p>
+<h1>Eder da Silva Souza
+  </h1>
+
+
+
+
+<div class="kpis">
+  <div class="kpi"><span class="valor">1</span><span class="rot">projetos apresentados (todos os anos)</span></div>
+  <div class="kpi"><span class="valor">0</span><span class="rot">aprovados</span></div>
+  <div class="kpi"><span class="valor">0</span><span class="rot">aprovados com impacto social positivo</span></div>
+</div>
+
+
+<h2>Projetos apresentados <span class="mudo">(1)</span></h2>
+
+<div class="tabela-rolagem"><table class="lista">
+  <thead><tr><th>Número</th><th>Ementa</th><th>Situação</th><th>Impacto social</th><th>Importância</th></tr></thead>
+  <tbody><tr data-busca="pl 100/2022 cria e regulamenta a redução no valor do imposto sobre a propriedade predial e territorial urbana (iptu) aos contribuintes pessoas físicas conforme o número de notas fiscais registradas por cadastro de pessoa física (cpf) eder da silva souza" data-situacao="arquivado" data-importancia="4" data-impacto="neutro">
+  <td class="ident"><a href="https://www.cmgravatai.rs.gov.br/documento/projeto-de-lei-100-2022-312883" rel="noopener">PL 100/2022</a></td>
+  <td>Cria e regulamenta a redução no valor do Imposto sobre a Propriedade Predial e Territorial Urbana (IPTU) aos contribuintes pessoas físicas conforme o número de Notas Fiscais registradas por Cadastro de Pessoa Física (CPF)</td>
+  <td><span class="selo sit-arquivado" title="Arquivado em 30/09/2022">Arquivado</span></td>
+  <td><span class="selo imp-neutro" title="Concede desconto no IPTU a pessoas físicas conforme o número de notas fiscais registradas no CPF; incentivo fiscal que tende a beneficiar quem consome mais e possui imóvel. Só a ementa foi fornecida. | Atenção (desigualdade): Desconto proporcional ao consumo favorece contribuintes de maior renda. | Atenção (servicos): Renúncia de receita sem indicação de compensação pode reduzir recursos para serviços públicos. | A favor: Estimula a emissão de notas fiscais e o combate à sonegação.">Neutro</span></td>
+  <td><span class="imp imp-4" title="Redução do IPTU conforme notas fiscais registradas por CPF, mexendo em tributo municipal.">4 · Alta</span></td>
+</tr></tbody>
+</table></div>
+
+
+
+
+</main>
+<section class="newsletter" aria-labelledby="nl-titulo">
+  <div class="largura newsletter-grade">
+    <div>
+      <h2 id="nl-titulo">Jornalismo crítico e inteligente. Todos os dias, no seu e-mail</h2>
+      <p>Assine nossa newsletter e receba um boletim matinal exclusivo.</p>
+    </div>
+    <form class="nl-form" id="nl-form" method="post"
+          action="https://docs.google.com/forms/d/e/1FAIpQLSfDigVz4JAGC99yiYOFgWmzXIqnUGSy2i7Xwbu5zcpN3u__eQ/formResponse"
+          data-google="1">
+      <label class="nl-rotulo" for="nl-email">Seu e-mail</label>
+      <div class="nl-linha">
+        <input id="nl-email" name="entry.1596347694" type="email" required autocomplete="email" placeholder="seuemail@exemplo.com">
+        <button type="submit" class="botao">Assinar</button>
+      </div>
+      <p class="nl-aviso">Usamos seu e-mail só para enviar a newsletter. Você pode cancelar quando quiser, pelo link em cada boletim.</p>
+      <p class="nl-status" role="status"></p>
+    </form>
+  </div>
+</section>
+<script>
+(function () {
+  var f = document.getElementById("nl-form"); if (!f) return;
+  var st = f.querySelector(".nl-status");
+  f.addEventListener("submit", function (ev) {
+    var email = f.querySelector("input[type=email]");
+    if (!email.checkValidity()) { ev.preventDefault(); st.textContent = "Confira o e-mail digitado."; return; }
+    if (!f.getAttribute("action")) {   // serviço de newsletter ainda não configurado: nada é enviado nem guardado
+      ev.preventDefault(); st.textContent = "As inscrições abrem em breve. Volte daqui a alguns dias!"; return;
+    }
+    if (f.getAttribute("data-google")) {   // Formulário Google: a inscrição vai para a planilha do site
+      ev.preventDefault();
+      var botao = f.querySelector("button"); botao.disabled = true; st.textContent = "Enviando…";
+      fetch(f.getAttribute("action"), { method: "POST", mode: "no-cors", body: new FormData(f) })
+        .then(function () { st.textContent = "Inscrição feita! Você vai receber nosso boletim no seu e-mail."; f.reset(); })
+        .catch(function () {
+          // envio direto bloqueado (bloqueador de anúncios, rede ou página dentro do claude.ai):
+          // manda pelo próprio formulário, abrindo a confirmação do Google em outra aba
+          f.removeAttribute("data-google"); f.target = "_blank";
+          HTMLFormElement.prototype.submit.call(f);
+          f.setAttribute("data-google", "1"); f.removeAttribute("target");
+          st.textContent = "Abrimos a confirmação do Google em outra aba: se ela mostrar que a resposta foi registrada, está feito. Se nenhuma aba abriu, libere as janelas pop-up e tente de novo.";
+          f.reset();
+        })
+        .then(function () { botao.disabled = false; });
+      return;
+    }
+    st.textContent = "Quase lá! Confirme a inscrição na janela que abriu e no e-mail que vamos te enviar.";
+  });
+})();
+</script>
+<footer class="largura rodape">
+  Atualizado em 11/11/2026. Fonte: portal da Câmara Municipal de Gravataí (cmgravatai.rs.gov.br).
+  Análise: Claude e regras automáticas
+  · <a href="../sobre.html">sobre nós</a> · <a href="../sobre.html#linha-editorial">linha editorial</a> · <a href="../dados.json">baixar dados (JSON)</a>
+</footer>
+</body>
+</html>
