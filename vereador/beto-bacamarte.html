@@ -9,6 +9,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Vollkorn:ital,wght@0,400;0,600;0,700;1,400&display=swap">
+<script>
+  // aplica o tema escolhido antes de desenhar a página (evita piscar)
+  try { var t = localStorage.getItem("sv-tema"); if (t === "claro" || t === "escuro") document.documentElement.setAttribute("data-theme", t === "escuro" ? "dark" : "light"); } catch (e) {}
+</script>
 <link rel="stylesheet" href="../static/estilo.css">
 <link rel="icon" href="../static/icone.png" type="image/png">
 <link rel="apple-touch-icon" href="../static/icone.png">
@@ -20,6 +24,10 @@
       <img class="logo logo-claro" src="../static/logo-claro.png" alt="Sob Vigia — Revista" width="1200" height="349">
       <img class="logo logo-escuro" src="../static/logo-escuro.png" alt="" aria-hidden="true" width="1200" height="349">
     </a>
+    <button type="button" class="botao-tema" id="botao-tema" aria-label="Mudar para o tema escuro" title="Mudar para o tema escuro">
+      <svg class="ic-lua" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M20.7 14.6A8.6 8.6 0 0 1 9.4 3.3a.8.8 0 0 0-1-1A10.2 10.2 0 1 0 21.7 15.6a.8.8 0 0 0-1-1Z"/></svg>
+      <svg class="ic-sol" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="currentColor"/><path stroke="currentColor" stroke-width="2" stroke-linecap="round" d="M12 1.8v2.4M12 19.8v2.4M1.8 12h2.4M19.8 12h2.4M4.8 4.8l1.7 1.7M17.5 17.5l1.7 1.7M4.8 19.2l1.7-1.7M17.5 6.5l1.7-1.7"/></svg>
+    </button>
     <nav aria-label="Seções">
       <a href="../index.html#inicio">Início</a>
       <a href="../index.html#noticias">Notícias e opinião</a>
@@ -84,6 +92,30 @@ título de Cidadão Gravataiense</td>
 
 
 </main>
+<script>
+(function () {
+  var raiz = document.documentElement, btn = document.getElementById("botao-tema");
+  if (!btn) return;
+  var media = window.matchMedia ? window.matchMedia("(prefers-color-scheme: dark)") : null;
+  function escuro() {
+    var t = raiz.getAttribute("data-theme");
+    return t ? t === "dark" : !!(media && media.matches);
+  }
+  function atualizar() {
+    var e = escuro(), txt = e ? "Mudar para o tema claro" : "Mudar para o tema escuro";
+    btn.setAttribute("aria-label", txt); btn.title = txt;
+    btn.classList.toggle("e-escuro", e);
+  }
+  btn.addEventListener("click", function () {
+    var novo = escuro() ? "light" : "dark";
+    raiz.setAttribute("data-theme", novo);
+    try { localStorage.setItem("sv-tema", novo === "dark" ? "escuro" : "claro"); } catch (e) {}
+    atualizar();
+  });
+  if (media && media.addEventListener) media.addEventListener("change", atualizar);
+  atualizar();
+})();
+</script>
 <section class="newsletter" aria-labelledby="nl-titulo">
   <div class="largura newsletter-grade">
     <div>
@@ -135,7 +167,7 @@ título de Cidadão Gravataiense</td>
 })();
 </script>
 <footer class="largura rodape">
-  Atualizado em 11/11/2026. Fonte: portal da Câmara Municipal de Gravataí (cmgravatai.rs.gov.br).
+  Atualizado em 12/11/2026. Fonte: portal da Câmara Municipal de Gravataí (cmgravatai.rs.gov.br).
   Análise: Claude e regras automáticas
   · <a href="../sobre.html">sobre nós</a> · <a href="../sobre.html#linha-editorial">linha editorial</a> · <a href="../dados.json">baixar dados (JSON)</a>
 </footer>
