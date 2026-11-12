@@ -14,6 +14,29 @@
   try { var t = localStorage.getItem("sv-tema"); if (t === "claro" || t === "escuro") document.documentElement.setAttribute("data-theme", t === "escuro" ? "dark" : "light"); } catch (e) {}
 </script>
 <link rel="stylesheet" href="static/estilo.css">
+
+<script>
+  // Estatísticas de visitas (GoatCounter: sem cookies, sem rastrear pessoas). Só no site público.
+  // Matérias e perfis abrem dentro da página inicial (#materia-…), então cada um é contado pelo endereço completo.
+  window.goatcounter = { no_onload: true };
+  (function () {
+    var ultimo = "";
+    function caminho() {
+      var h = location.hash || "";
+      if (!/^#(materia-|colunista-|noticias$|colunistas$)/.test(h)) h = "";
+      return location.pathname.replace(/index\.html$/, "") + h;   // "/" e "/index.html" contam juntos
+    }
+    window.svContar = function () {
+      var gc = window.goatcounter;
+      if (!gc || typeof gc.count !== "function") return;
+      var p = caminho(); if (p === ultimo) return; ultimo = p;
+      gc.count({ path: p });
+    };
+    window.addEventListener("hashchange", window.svContar);
+  })();
+</script>
+<script data-goatcounter="https://sobvigia.goatcounter.com/count" async src="https://gc.zgo.at/count.js" onload="svContar()"></script>
+
 <link rel="icon" href="static/icone.png" type="image/png">
 <link rel="apple-touch-icon" href="static/icone.png">
 </head>
@@ -60,6 +83,7 @@ de onde falamos e qual régua usamos. As propostas apresentadas em <a href="prop
   <li><b>Fiscalização da Câmara</b>: em <a href="propostas.html">Câmara × Propostas</a>, o que a Câmara aprovou tema por tema,
   e os <a href="propostas.html#vereadores">vereadores</a> e seus projetos, construídos com os dados abertos da Câmara e com os critérios descritos abaixo.</li>
 </ul>
+<p><b>Privacidade:</b> contamos as visitas ao site com o GoatCounter, que não usa cookies e não identifica quem lê. Sabemos quantas vezes cada página foi aberta, de onde veio o acesso (por exemplo, WhatsApp ou Google) e o tipo de aparelho, nunca quem você é.</p>
 <p>Encontrou um erro? Queremos corrigir. Erros de fato são corrigidos e a correção é informada no próprio texto.</p>
 
 <h1 class="sobre-secao">Como avaliamos a Câmara</h1>

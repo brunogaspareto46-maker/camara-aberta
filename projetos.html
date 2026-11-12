@@ -14,6 +14,29 @@
   try { var t = localStorage.getItem("sv-tema"); if (t === "claro" || t === "escuro") document.documentElement.setAttribute("data-theme", t === "escuro" ? "dark" : "light"); } catch (e) {}
 </script>
 <link rel="stylesheet" href="static/estilo.css">
+
+<script>
+  // Estatísticas de visitas (GoatCounter: sem cookies, sem rastrear pessoas). Só no site público.
+  // Matérias e perfis abrem dentro da página inicial (#materia-…), então cada um é contado pelo endereço completo.
+  window.goatcounter = { no_onload: true };
+  (function () {
+    var ultimo = "";
+    function caminho() {
+      var h = location.hash || "";
+      if (!/^#(materia-|colunista-|noticias$|colunistas$)/.test(h)) h = "";
+      return location.pathname.replace(/index\.html$/, "") + h;   // "/" e "/index.html" contam juntos
+    }
+    window.svContar = function () {
+      var gc = window.goatcounter;
+      if (!gc || typeof gc.count !== "function") return;
+      var p = caminho(); if (p === ultimo) return; ultimo = p;
+      gc.count({ path: p });
+    };
+    window.addEventListener("hashchange", window.svContar);
+  })();
+</script>
+<script data-goatcounter="https://sobvigia.goatcounter.com/count" async src="https://gc.zgo.at/count.js" onload="svContar()"></script>
+
 <link rel="icon" href="static/icone.png" type="image/png">
 <link rel="apple-touch-icon" href="static/icone.png">
 </head>
