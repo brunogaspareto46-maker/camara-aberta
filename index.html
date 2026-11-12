@@ -52,7 +52,8 @@
 </section>
 
 <section id="colunistas" class="colunistas" data-v="colunistas" aria-labelledby="cl-titulo">
-  <h2 id="cl-titulo">Colunistas</h2>
+  <div class="secao-cab"><h2 id="cl-titulo">Colunistas</h2></div>
+  <div id="cl-editor-slot"></div>
   <p class="intro">Quem escreve as colunas de opinião do site. Clique em um nome para ver o perfil e tudo o que a pessoa publicou.</p>
   <div class="grade-colunistas" id="cl-grade"><p class="mudo">Carregando…</p></div>
 </section>
@@ -89,6 +90,11 @@
   var slot = document.getElementById("nt-editor-slot");
   var db = null, assets = null, podeEditar = false, itens = [], carregou = false;
   var DESTAQUES = "site/destaques", destaques = [];
+  var PERFIS = "colunistas", perfis = {};   // perfis de colunistas: slug -> {nome, bio, foto}
+  function perfilDe(nome, n) {             // o perfil cadastrado vale mais que os dados gravados na coluna
+    var p = nome ? perfis[slug(nome)] : null;
+    return { nome: (p && p.nome) || nome || "", bio: (p && p.bio) || (n && n.autor_bio) || "", foto: (p && p.foto) || (n && n.autor_foto) || "" };
+  }
 
   function el(tag, cls, texto) {
     var e = document.createElement(tag);
@@ -168,7 +174,7 @@
   }
   function cartaoOpiniao(n) {
     var art = el("article", "cartao-opiniao");
-    var f = img(n.autor_foto, "avatar", n.autor);
+    var f = img(perfilDe(n.autor, n).foto, "avatar", n.autor);
     if (f) art.appendChild(f);
     var txt = el("div");
     txt.appendChild(el("span", "colunista-nome", n.autor || ""));
@@ -214,7 +220,7 @@
     // sugestões de colunistas já publicados no editor
     var dl = document.getElementById("ed-autores"); if (!dl) return;   // site público: não há editor
     dl.textContent = "";
-    Array.from(new Set(itens.map(function (n) { return n.autor; }).filter(Boolean))).forEach(function (a) {
+    Array.from(new Set(Object.keys(perfis).map(function (k) { return perfis[k].nome; }).concat(itens.map(function (n) { return n.autor; })).filter(Boolean))).forEach(function (a) {
       var o = el("option"); o.value = a; dl.appendChild(o);
     });
   }
@@ -293,12 +299,13 @@
       col.appendChild(voltar);
       if (n.tipo === "opiniao") {
         var cab = el("div", "colunista");
-        var av = img(n.autor_foto, "avatar grande", n.autor); if (av) cab.appendChild(av);
+        var pf = perfilDe(n.autor, n);
+        var av = img(pf.foto, "avatar grande", n.autor); if (av) cab.appendChild(av);
         var info = el("div");
         info.appendChild(el("span", "rotulo-secao", "Colunistas"));
         var nomeLink = el("a", "colunista-nome grande", n.autor || ""); nomeLink.href = "#colunista-" + slug(n.autor || "");
         info.appendChild(nomeLink);
-        if (n.autor_bio) info.appendChild(el("p", "colunista-bio", n.autor_bio));
+        if (pf.bio) info.appendChild(el("p", "colunista-bio", pf.bio));
         cab.appendChild(info); col.appendChild(cab);
       } else {
         var cat = el("p"); cat.appendChild(el("span", "rotulo-cat", rotuloTipo(n))); col.appendChild(cat);
@@ -378,6 +385,10 @@
   // ---------- colunistas ----------
   function colunistas() {
     var mapa = {};
+    Object.keys(perfis).forEach(function (s) {
+      var p = perfis[s];
+      if (p && p.nome) mapa[s] = { slug: s, nome: p.nome, bio: p.bio || "", foto: p.foto || "", colunas: [], perfil: true };
+    });
     itens.forEach(function (n) {
       if (n.tipo !== "opiniao" || !n.autor) return;
       var s = slug(n.autor);
@@ -392,14 +403,14 @@
   function renderColunistas() {
     var grade = document.getElementById("cl-grade"); grade.textContent = "";
     var lista = colunistas();
-    if (!lista.length) { grade.appendChild(el("p", "mudo", "Ainda não há colunas publicadas.")); return; }
+    if (!lista.length) { grade.appendChild(el("p", "mudo", "Ainda não há colunistas.")); return; }
     lista.forEach(function (c) {
       var a = el("a", "cartao-colunista"); a.href = "#colunista-" + c.slug;
       var f = img(c.foto, "avatar grande", c.nome); if (f) a.appendChild(f); else a.appendChild(el("span", "avatar grande avatar-vazio"));
       var t = el("div");
       t.appendChild(el("span", "colunista-nome grande", c.nome));
       if (c.bio) t.appendChild(el("p", "colunista-bio", c.bio));
-      t.appendChild(el("span", "byline", c.colunas.length + (c.colunas.length === 1 ? " coluna" : " colunas")));
+      t.appendChild(el("span", "byline", !c.colunas.length ? "Em breve" : c.colunas.length + (c.colunas.length === 1 ? " coluna" : " colunas")));
       a.appendChild(t); grade.appendChild(a);
     });
   }
@@ -415,7 +426,9 @@
     info.appendChild(el("h1", "colunista-nome grande", c.nome));
     if (c.bio) info.appendChild(el("p", "colunista-bio", c.bio));
     cab.appendChild(info); alvo.appendChild(cab);
+    if (podeEditar) alvo.appendChild(acoesPerfil(c));
     alvo.appendChild(el("h2", null, "Colunas publicadas"));
+    if (!c.colunas.length) alvo.appendChild(el("p", "mudo", "Ainda não há colunas publicadas."));
     var ul = el("ul", "lista-colunas");
     c.colunas.forEach(function (n) {
       var li = el("li"); var a = el("a", null, n.titulo); a.href = "#materia-" + n.id;
@@ -427,6 +440,92 @@
     alvo.appendChild(ul);
     document.title = c.nome + " · Colunistas · Sob Vigia";
   }
+
+  // ---------- perfis de colunistas (só admin) ----------
+  function acoesPerfil(c) {
+    var box = el("div", "materia-acoes");
+    var ed = el("button", "botao secundario", c.perfil ? "Editar perfil" : "Criar perfil"); ed.type = "button";
+    ed.onclick = function () { location.hash = "colunistas"; abrirPerfil(c); };
+    box.appendChild(ed);
+    if (c.perfil) {
+      var del = el("button", "botao secundario", "Remover perfil"); del.type = "button";
+      del.onclick = function () {
+        if (box.querySelector(".confirmar")) return;
+        var conf = el("div", "confirmar");
+        conf.appendChild(el("span", null, c.colunas.length
+          ? "Remover o perfil? As colunas continuam publicadas, com a foto e a minibio gravadas em cada uma."
+          : "Remover este perfil de vez?"));
+        var sim = el("button", "botao", "Sim, remover"); sim.type = "button";
+        var nao = el("button", "botao secundario", "Cancelar"); nao.type = "button";
+        sim.onclick = function () {
+          sim.disabled = true;
+          db.collection(PERFIS).doc(c.slug).delete().then(function () { location.hash = "colunistas"; })
+            .catch(function () { conf.firstChild.textContent = "Não foi possível remover agora."; sim.disabled = false; });
+        };
+        nao.onclick = function () { conf.remove(); };
+        conf.appendChild(sim); conf.appendChild(nao); box.appendChild(conf);
+      };
+      box.appendChild(del);
+    }
+    return box;
+  }
+  function abrirPerfil(c) {           // c: colunista existente (ou nulo para um novo)
+    var slotP = document.getElementById("cl-editor-slot"), btnNovo = document.getElementById("cl-novo");
+    slotP.textContent = "";
+    var form = document.getElementById("cl-form").content.firstElementChild.cloneNode(true);
+    var status = form.querySelector(".status"), foto = c ? c.foto || "" : "", enviadas = [];
+    if (c) {
+      form.querySelector(".cl-form-titulo").textContent = c.perfil ? "Editar perfil" : "Criar perfil";
+      form.elements.nome.value = c.nome; form.elements.nome.readOnly = true;
+      form.querySelector(".cl-dica-nome").hidden = false;
+      form.elements.bio.value = c.bio || "";
+    }
+    function mostrar() {
+      var alvo = form.querySelector('[data-preview="foto"]'); alvo.textContent = "";
+      var i = img(foto, "avatar grande", "Prévia"); if (i) alvo.appendChild(i);
+      form.querySelector('[data-remover="foto"]').hidden = !foto;
+    }
+    mostrar();
+    var input = form.querySelector('[data-upload="foto"]');
+    if (!assets) input.closest("label").hidden = true;
+    input.onchange = function () {
+      var arq = input.files && input.files[0]; if (!arq) return;
+      status.textContent = "Enviando a foto…";
+      reduzir(arq, { max: 480, quadrado: true })
+        .then(function (b) { return assets.upload(b, { type: "image/jpeg" }); })
+        .then(function (r) { foto = r.id; enviadas.push(r.id); mostrar(); status.textContent = "Foto pronta."; })
+        .catch(function (e) { status.textContent = mensagemUpload(e); })
+        .then(function () { input.value = ""; });
+    };
+    form.querySelector('[data-remover="foto"]').onclick = function () { foto = ""; mostrar(); };
+    function fechar() { slotP.textContent = ""; if (btnNovo) btnNovo.hidden = !podeEditar; }
+    form.querySelector('[data-acao="cancelar"]').onclick = function () {
+      enviadas.forEach(function (id) { if (assets) assets.delete(id).catch(function () {}); });
+      fechar();
+    };
+    form.onsubmit = function (ev) {
+      ev.preventDefault();
+      var nome = form.elements.nome.value.trim().replace(/\s+/g, " ");
+      if (!nome) { status.textContent = "Preencha o nome."; return; }
+      var s = c ? c.slug : slug(nome);
+      if (!c && perfis[s]) { status.textContent = "Já existe um perfil com esse nome."; return; }
+      var botao = form.querySelector('[type="submit"]'); botao.disabled = true; status.textContent = "Salvando…";
+      db.collection(PERFIS).doc(s).set({ nome: nome, bio: form.elements.bio.value.trim(), foto: foto, atualizado_em: new Date().toISOString() })
+        .then(function () {
+          enviadas.forEach(function (id) { if (id !== foto && assets) assets.delete(id).catch(function () {}); });
+          fechar(); location.hash = "colunista-" + s;
+        })
+        .catch(function (e) {
+          botao.disabled = false;
+          status.textContent = e && e.code === "invalid_argument" ? "Sua conta não tem permissão para editar perfis." : "Não foi possível salvar agora. Tente de novo.";
+        });
+    };
+    slotP.appendChild(form);
+    if (btnNovo) btnNovo.hidden = true;
+    form.elements[c ? "bio" : "nome"].focus();
+  }
+  var btnNovoCol = document.getElementById("cl-novo");
+  if (btnNovoCol) btnNovoCol.onclick = function () { abrirPerfil(null); };
 
   // ---------- fotos: reduz e envia ----------
   function reduzir(arquivo, opcoes) {
@@ -563,6 +662,12 @@
 
     // colunista que já publicou: preenche foto e minibiografia
     f("autor").addEventListener("change", function () {
+      var p = perfis[slug(f("autor").value.trim())];
+      if (p) {
+        if (p.bio) f("autor_bio").value = p.bio;
+        if (p.foto) { fotos.autor_foto = p.foto; mostrarFoto("autor_foto"); }
+        return;
+      }
       var nome = f("autor").value.trim().toLowerCase();
       var ant = itens.filter(function (x) { return x.tipo === "opiniao" && String(x.autor || "").toLowerCase() === nome; })[0];
       if (!ant) return;
@@ -636,6 +741,8 @@
   if (PUBLICO) {   // site público: conteúdo exportado do painel de edição, só leitura
     fetch("conteudo.json").then(function (r) { if (!r.ok) throw r; return r.json(); }).then(function (c) {
       FOTOS = (c && c.fotos) || {};
+      perfis = {};
+      ((c && c.colunistas) || []).forEach(function (p) { if (p && p.nome) perfis[slug(p.id || p.nome)] = p; });
       destaques = (c && Array.isArray(c.destaques) ? c.destaques : []).filter(function (x) { return typeof x === "string"; }).slice(0, 3);
       itens = ((c && c.noticias) || []).filter(function (x) { return x && x.titulo && x.corpo; })
         .sort(function (a, b) { return String(b.publicado_em || "").localeCompare(String(a.publicado_em || "")); });
@@ -656,6 +763,12 @@
     if (!db) { clearTimeout(temporizador); estado.textContent = "Entre na sua conta do claude.ai para ver as publicações."; return; }
     podeEditar = !!(user && user.canEdit && user.canEdit());
     btnEscrever.hidden = !podeEditar;
+    if (btnNovoCol) btnNovoCol.hidden = !podeEditar;
+    db.collection(PERFIS).onSnapshot(function (snap) {
+      perfis = {};
+      snap.docs.forEach(function (d) { var x = d.data() || {}; if (x.nome) perfis[d.id] = x; });
+      renderCapa(); renderOpinioesInicio(); renderColunistas(); rota();
+    }, function () {});
     db.doc(DESTAQUES).onSnapshot(function (s) {
       var d = s.exists ? s.data() : null;
       destaques = d && Array.isArray(d.ids) ? d.ids.filter(function (x) { return typeof x === "string"; }).slice(0, 3) : [];
