@@ -240,7 +240,7 @@
   }
   function copiar(texto, aviso, msg) {
     var ok = function () { aviso.textContent = msg; };
-    var manual = function () { window.prompt("Copie o link:", texto); };
+    var manual = function () { aviso.textContent = "Copie o link: " + texto; };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(texto).then(ok, manual);
     else manual();
   }
@@ -609,6 +609,29 @@
       }
       trocar(a, b, novo);
     }
+    // link: painel dentro do editor (janelas do navegador são bloqueadas no claude.ai)
+    var pl = form.querySelector(".painel-link"), plTexto = pl.querySelector('[data-link="texto"]'),
+        plUrl = pl.querySelector('[data-link="url"]'), plAviso = pl.querySelector(".painel-link-aviso"), selLink = [0, 0];
+    function abrirLink() {
+      selLink = [ta.selectionStart, ta.selectionEnd];
+      plTexto.value = ta.value.slice(selLink[0], selLink[1]).replace(/\s+/g, " ").trim();
+      plUrl.value = ""; plAviso.textContent = ""; pl.hidden = false;
+      (plTexto.value ? plUrl : plTexto).focus();
+    }
+    function inserirLink() {
+      var txt = plTexto.value.replace(/[\[\]]/g, "").replace(/\s+/g, " ").trim(), url = plUrl.value.trim();
+      if (url && !/^https?:\/\//i.test(url)) url = "https://" + url;
+      if (!txt) { plAviso.textContent = "Escreva o texto que vai virar link."; plTexto.focus(); return; }
+      if (!/^https?:\/\/[^\s()]+\.[^\s()]+$/i.test(url)) { plAviso.textContent = "Endereço inválido. Ex.: https://www.exemplo.com.br/pagina"; plUrl.focus(); return; }
+      pl.hidden = true;
+      trocar(selLink[0], selLink[1], "[" + txt + "](" + url + ")", 1, 1 + txt.length);
+    }
+    pl.querySelector('[data-link="inserir"]').onclick = inserirLink;
+    pl.querySelector('[data-link="cancelar"]').onclick = function () { pl.hidden = true; ta.focus(); ta.setSelectionRange(selLink[0], selLink[1]); };
+    [plTexto, plUrl].forEach(function (i) { i.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); inserirLink(); }
+      if (e.key === "Escape") { e.preventDefault(); pl.hidden = true; ta.focus(); }
+    }); });
     Array.prototype.forEach.call(form.querySelectorAll("[data-fmt]"), function (btn) {
       btn.addEventListener("mousedown", function (e) { e.preventDefault(); });   // não perde a seleção
       btn.onclick = function () {
@@ -618,12 +641,8 @@
         else if (f === "subtitulo") prefixarLinhas("## ", "Subtítulo", true);
         else if (f === "citacao") prefixarLinhas("> ", "citação", true);
         else if (f === "lista") prefixarLinhas("- ", "item", true);
-        else if (f === "link") {
-          var url = window.prompt("Endereço do link (começando com https://):", "https://");
-          if (!url || !/^https?:\/\/\S+$/.test(url.trim())) return;
-          var a = ta.selectionStart, b = ta.selectionEnd, txt = ta.value.slice(a, b) || "texto do link";
-          trocar(a, b, "[" + txt + "](" + url.trim() + ")", 1, 1 + txt.length);
-        } else if (f === "previa") {
+        else if (f === "link") abrirLink();
+        else if (f === "previa") {
           var ver = previa.hidden;
           previa.textContent = ""; if (ver) paragrafos(previa, ta.value);
           previa.hidden = !ver; ta.hidden = ver;
