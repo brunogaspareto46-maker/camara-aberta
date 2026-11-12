@@ -50,7 +50,7 @@ a:hover { color: var(--destaque); }
 .topo .largura { display: grid; justify-items: center; gap: 10px; padding-top: 22px; }
 .marca { display: block; line-height: 0; text-decoration: none; }
 .marca:focus-visible { outline: 3px solid var(--destaque); outline-offset: 4px; }
-.logo { display: block; width: clamp(250px, 32vw, 400px); height: auto; }
+.logo { display: block; width: clamp(190px, 23vw, 290px); height: auto; }
 /* o logo acompanha o fundo: versão escura no tema claro e versão clara no tema escuro */
 .logo-escuro { display: none; }
 @media (prefers-color-scheme: dark) {
