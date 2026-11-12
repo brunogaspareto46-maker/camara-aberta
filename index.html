@@ -119,9 +119,36 @@
     return String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
       .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60) || "texto";
   }
+  // Texto com formatação simples, sempre montado com elementos (nunca innerHTML):
+  //   **negrito**  *itálico*  [texto do link](https://...)
+  //   ## Subtítulo      > citação      - item de lista      (parágrafos separados por linha em branco)
+  function emLinha(alvo, texto) {
+    var re = /\*\*([^*]+?)\*\*|\*([^*\n]+?)\*|\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, i = 0, m;
+    while ((m = re.exec(texto))) {
+      if (m.index > i) alvo.appendChild(document.createTextNode(texto.slice(i, m.index)));
+      if (m[1] != null) { var b = el("strong"); emLinha(b, m[1]); alvo.appendChild(b); }
+      else if (m[2] != null) { var it = el("em"); emLinha(it, m[2]); alvo.appendChild(it); }
+      else { var a = el("a", null, m[3]); a.href = m[4]; a.target = "_blank"; a.rel = "noopener"; alvo.appendChild(a); }
+      i = re.lastIndex;
+    }
+    if (i < texto.length) alvo.appendChild(document.createTextNode(texto.slice(i)));
+  }
   function paragrafos(alvo, texto) {
-    String(texto || "").split(/\n\s*\n/).forEach(function (par) {
-      par = par.trim(); if (par) alvo.appendChild(el("p", null, par.replace(/\s*\n\s*/g, " ")));
+    String(texto || "").replace(/\r/g, "").split(/\n\s*\n/).forEach(function (bloco) {
+      bloco = bloco.trim(); if (!bloco) return;
+      var linhas = bloco.split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
+      if (/^#{2,3}\s+/.test(bloco) && linhas.length === 1) {
+        var h = el("h2", "intertitulo"); emLinha(h, bloco.replace(/^#{2,3}\s+/, "")); alvo.appendChild(h);
+      } else if (linhas.every(function (l) { return /^[-•]\s+/.test(l); })) {
+        var ul = el("ul");
+        linhas.forEach(function (l) { var li = el("li"); emLinha(li, l.replace(/^[-•]\s+/, "")); ul.appendChild(li); });
+        alvo.appendChild(ul);
+      } else if (linhas.every(function (l) { return /^>\s?/.test(l); })) {
+        var q = el("blockquote"), p = el("p");
+        emLinha(p, linhas.map(function (l) { return l.replace(/^>\s?/, ""); }).join(" ")); q.appendChild(p); alvo.appendChild(q);
+      } else {
+        var par = el("p"); emLinha(par, linhas.join(" ")); alvo.appendChild(par);
+      }
     });
   }
 
@@ -461,9 +488,55 @@
     return box;
   }
 
+  function ligarFormatacao(form) {
+    var ta = form.querySelector('textarea[name="corpo"]'), previa = form.querySelector(".previa-texto");
+    function trocar(ini, fim, novo, selIni, selFim) {
+      ta.focus(); ta.setRangeText(novo, ini, fim, "end");
+      if (selIni != null) ta.setSelectionRange(ini + selIni, ini + selFim);
+      ta.dispatchEvent(new Event("input"));
+    }
+    function envolver(marca, exemplo) {
+      var a = ta.selectionStart, b = ta.selectionEnd, sel = ta.value.slice(a, b) || exemplo;
+      trocar(a, b, marca + sel + marca, marca.length, marca.length + sel.length);
+    }
+    function prefixarLinhas(prefixo, exemplo, isolar) {
+      var v = ta.value, a = v.lastIndexOf("\n", ta.selectionStart - 1) + 1, b = v.indexOf("\n", ta.selectionEnd);
+      if (b < 0) b = v.length;
+      var trecho = v.slice(a, b) || exemplo;
+      var novo = trecho.split("\n").map(function (l) { return l.trim() ? prefixo + l.replace(/^(#{2,3}\s+|>\s?|[-•]\s+)/, "") : l; }).join("\n");
+      if (isolar) {                       // subtítulo, citação e lista ficam em bloco próprio
+        if (a > 0 && v.slice(0, a).slice(-2) !== "\n\n") novo = (v[a - 1] === "\n" ? "\n" : "\n\n") + novo;
+        if (b < v.length && v.slice(b, b + 2) !== "\n\n") novo = novo + (v[b + 1] === "\n" ? "" : "\n");
+      }
+      trocar(a, b, novo);
+    }
+    Array.prototype.forEach.call(form.querySelectorAll("[data-fmt]"), function (btn) {
+      btn.addEventListener("mousedown", function (e) { e.preventDefault(); });   // não perde a seleção
+      btn.onclick = function () {
+        var f = btn.getAttribute("data-fmt");
+        if (f === "negrito") envolver("**", "texto em negrito");
+        else if (f === "italico") envolver("*", "texto em itálico");
+        else if (f === "subtitulo") prefixarLinhas("## ", "Subtítulo", true);
+        else if (f === "citacao") prefixarLinhas("> ", "citação", true);
+        else if (f === "lista") prefixarLinhas("- ", "item", true);
+        else if (f === "link") {
+          var url = window.prompt("Endereço do link (começando com https://):", "https://");
+          if (!url || !/^https?:\/\/\S+$/.test(url.trim())) return;
+          var a = ta.selectionStart, b = ta.selectionEnd, txt = ta.value.slice(a, b) || "texto do link";
+          trocar(a, b, "[" + txt + "](" + url.trim() + ")", 1, 1 + txt.length);
+        } else if (f === "previa") {
+          var ver = previa.hidden;
+          previa.textContent = ""; if (ver) paragrafos(previa, ta.value);
+          previa.hidden = !ver; ta.hidden = ver;
+          btn.setAttribute("aria-pressed", String(ver)); btn.textContent = ver ? "Voltar a editar" : "Ver como fica";
+        }
+      };
+    });
+  }
   function abrirEditor(existente) {
     slot.textContent = "";
     var form = document.getElementById("nt-form").content.firstElementChild.cloneNode(true);
+    ligarFormatacao(form);
     var f = function (nome) { return form.elements[nome]; };
     var status = form.querySelector(".status");
     var fotos = { foto: existente ? existente.foto || "" : "", autor_foto: existente ? existente.autor_foto || "" : "" };
