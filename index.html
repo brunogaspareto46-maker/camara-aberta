@@ -22,6 +22,8 @@
 <meta name="twitter:title" content="Sob Vigia">
 <meta name="twitter:description" content="Notícias, opinião e fiscalização da Câmara de Vereadores de Gravataí (RS).">
 <meta name="twitter:image" content="https://sobvigia.com.br/static/compartilhar.png">
+<link rel="canonical" href="https://sobvigia.com.br/">
+
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -199,7 +201,11 @@
   }
 
   // ---------- capa ----------
-  function linkMateria(n, filho) { var a = el("a", "titulo"); a.href = "#materia-" + n.id; a.appendChild(filho); return a; }
+  // No site público cada publicação e cada colunista têm página própria (endereço limpo);
+  // no painel, abrem dentro desta página.
+  function hrefMateria(n) { return PUBLICO && n.url ? n.url : "#materia-" + n.id; }
+  function hrefColunista(s) { return PUBLICO ? "colunistas/" + s + "/" : "#colunista-" + s; }
+  function linkMateria(n, filho) { var a = el("a", "titulo"); a.href = hrefMateria(n); a.appendChild(filho); return a; }
   function cartaoNoticia(n, tamanho) {
     var art = el("article", "cartao-" + tamanho);
     var txt = el("div", "cartao-texto");
@@ -252,7 +258,7 @@
     var resto = itens.filter(function (n) { return mostrados.indexOf(n) < 0; });
     maisLista.textContent = "";
     resto.forEach(function (n) {
-      var li = el("li"); var a = el("a", null, n.titulo); a.href = "#materia-" + n.id;
+      var li = el("li"); var a = el("a", null, n.titulo); a.href = hrefMateria(n);
       li.appendChild(a); li.appendChild(el("span", "mudo", " · " + rotuloTipo(n) + " · " + byline(n)));
       maisLista.appendChild(li);
     });
@@ -276,7 +282,20 @@
   };
   function linkPublico(n) {
     var base = PUBLICO ? location.href.split("#")[0].replace(/[^\/]*$/, "") : URL_PUBLICA;
-    return base ? base + "n/" + encodeURIComponent(n.id) + ".html" : "";
+    if (!base) return "";
+    if (PUBLICO && n.url) return base + n.url;                 // endereço limpo da publicação
+    return base + "n/" + encodeURIComponent(n.id) + ".html";   // painel: leva ao endereço limpo
+  }
+  // site público: endereços antigos (#materia-…, #colunista-…) levam às páginas próprias
+  function redirecionarAntigo() {
+    if (!PUBLICO) return false;
+    var h = location.hash.slice(1);
+    if (h.indexOf("colunista-") === 0) { location.replace(hrefColunista(h.slice(10))); return true; }
+    if (h.indexOf("materia-") === 0 && carregou) {
+      var n = itens.filter(function (x) { return x.id === h.slice(8); })[0];
+      if (n && n.url) { location.replace(n.url); return true; }
+    }
+    return false;
   }
   function copiar(texto, aviso, msg) {
     var ok = function () { aviso.textContent = msg; };
@@ -343,7 +362,7 @@
         var av = img(pf.foto, "avatar grande", n.autor); if (av) cab.appendChild(av);
         var info = el("div");
         info.appendChild(el("span", "rotulo-secao", "Colunistas"));
-        var nomeLink = el("a", "colunista-nome grande", n.autor || ""); nomeLink.href = "#colunista-" + slug(n.autor || "");
+        var nomeLink = el("a", "colunista-nome grande", n.autor || ""); nomeLink.href = hrefColunista(slug(n.autor || ""));
         info.appendChild(nomeLink);
         if (pf.bio) info.appendChild(el("p", "colunista-bio", pf.bio));
         cab.appendChild(info); col.appendChild(cab);
@@ -379,6 +398,7 @@
     });
   }
   function rota(rolar) {
+    if (redirecionarAntigo()) return;
     var h = location.hash.slice(1);
     if (h.indexOf("materia-") === 0) { mostrarMateria(h.slice(8)); vista("materia", "noticias"); if (rolar) window.scrollTo(0, 0); return; }
     document.title = tituloOriginal;
@@ -445,7 +465,7 @@
     var lista = colunistas();
     if (!lista.length) { grade.appendChild(el("p", "mudo", "Ainda não há colunistas.")); return; }
     lista.forEach(function (c) {
-      var a = el("a", "cartao-colunista"); a.href = "#colunista-" + c.slug;
+      var a = el("a", "cartao-colunista"); a.href = hrefColunista(c.slug);
       var f = img(c.foto, "avatar grande", c.nome); if (f) a.appendChild(f); else a.appendChild(el("span", "avatar grande avatar-vazio"));
       var t = el("div");
       t.appendChild(el("span", "colunista-nome grande", c.nome));
@@ -471,7 +491,7 @@
     if (!c.colunas.length) alvo.appendChild(el("p", "mudo", "Ainda não há colunas publicadas."));
     var ul = el("ul", "lista-colunas");
     c.colunas.forEach(function (n) {
-      var li = el("li"); var a = el("a", null, n.titulo); a.href = "#materia-" + n.id;
+      var li = el("li"); var a = el("a", null, n.titulo); a.href = hrefMateria(n);
       li.appendChild(a);
       if (n.linha_fina) li.appendChild(el("p", "mudo", n.linha_fina));
       li.appendChild(el("span", "byline", data(n.publicado_em)));

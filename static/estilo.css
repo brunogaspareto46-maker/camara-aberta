@@ -465,3 +465,8 @@ a.colunista-nome { text-decoration: none; }
 .painel-link-aviso { grid-column: 1 / -1; margin: 0; font-size: .85rem; }
 .painel-link-aviso:empty { display: none; }
 @media (max-width: 700px) { .painel-link { grid-template-columns: 1fr; } }
+
+/* páginas próprias de matéria e colunista (site público) */
+.leia-tambem { margin-top: 40px; }
+.leia-tambem h2 { margin-bottom: 8px; }
+.pagina-propria .colunista-nome { text-decoration: none; }
