@@ -481,3 +481,45 @@ a.colunista-nome { text-decoration: none; }
 .ed-audio-status:empty { display: none; }
 .audio-marcador { font: 600 .9rem/1.3 var(--sans); color: var(--destaque); border: 2px dashed var(--borda); padding: 12px 14px; }
 .corpo .audio-materia { margin: 1.4em 0; }
+
+/* carrossel de últimas publicações (página inicial) */
+.carrossel { position: relative; margin: 18px 0 34px; }
+.car-trilho { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; border-radius: 4px; outline: none; }
+.car-trilho::-webkit-scrollbar { display: none; }
+.car-slide { position: relative; flex: 0 0 100%; scroll-snap-align: start; aspect-ratio: 16 / 7; min-height: 340px; max-height: 520px;
+  overflow: hidden; display: block; color: #fff; text-decoration: none; background: var(--roxo-forte); }
+.car-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.car-slide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,8,32,0) 30%, rgba(20,8,32,.55) 60%, rgba(20,8,32,.92) 100%); }
+.car-sem-foto { background: radial-gradient(circle at 85% 15%, #6c34a0 0, var(--roxo-forte) 55%, #24103a 100%); }
+.car-sem-foto::after { background: none; }
+.car-texto { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 28px clamp(18px, 4vw, 44px) 46px; display: grid; gap: 10px; max-width: 900px; }
+.car-cat { justify-self: start; font: 700 .72rem/1 var(--sans); letter-spacing: .1em; text-transform: uppercase; background: var(--amarelo); color: var(--tinta-amarelo); padding: 6px 9px; }
+.car-titulo { font: 700 clamp(1.5rem, 3.6vw, 2.6rem)/1.15 var(--serif); margin: 0; color: #fff; text-shadow: 0 1px 12px rgba(0,0,0,.35); }
+.car-slide:hover .car-titulo, .car-slide:focus-visible .car-titulo { text-decoration: underline; text-decoration-color: var(--amarelo); text-underline-offset: 5px; }
+.car-linha { margin: 0; font: 400 clamp(.95rem, 1.6vw, 1.1rem)/1.45 var(--sans); color: #f1ecf7; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.car-autor { margin: 0; display: flex; align-items: center; gap: 10px; font: 600 .8rem/1.2 var(--sans); color: #e6dcf2; text-transform: uppercase; letter-spacing: .03em; }
+.car-avatar { width: 42px; height: 42px; border: 2px solid var(--amarelo); }
+.car-opiniao .car-titulo { font-style: italic; }
+.car-slide:focus-visible { outline: 3px solid var(--amarelo); outline-offset: -3px; }
+.car-seta { position: absolute; top: 50%; transform: translateY(-50%); z-index: 2; width: 44px; height: 44px; border-radius: 50%; border: 0;
+  background: rgba(255,255,255,.88); color: #24103a; font: 700 1.8rem/1 var(--sans); cursor: pointer; display: grid; place-items: center; padding-bottom: 4px; }
+.car-seta:hover { background: var(--amarelo); }
+.car-seta:focus-visible { outline: 3px solid var(--amarelo); outline-offset: 2px; }
+.car-ant { left: 12px; } .car-prox { right: 12px; }
+.car-pontos { position: absolute; left: 0; right: 0; bottom: 14px; z-index: 2; display: flex; justify-content: center; gap: 8px; }
+.car-ponto { width: 10px; height: 10px; border-radius: 50%; border: 2px solid #fff; background: transparent; padding: 0; cursor: pointer; }
+.car-ponto[aria-current="true"] { background: var(--amarelo); border-color: var(--amarelo); width: 26px; border-radius: 6px; }
+.car-unico .car-seta, .car-unico .car-pontos { display: none; }
+@media (max-width: 700px) {
+  .car-slide { aspect-ratio: 4 / 5; min-height: 0; max-height: 520px; }
+  .car-seta { display: none; }
+  .car-texto { padding-bottom: 40px; }
+}
+.car-retrato { position: absolute; z-index: 1; right: 7%; top: 50%; transform: translateY(-50%); width: clamp(150px, 22vw, 290px); aspect-ratio: 1; border-radius: 50%;
+  object-fit: cover; border: 5px solid var(--amarelo); box-shadow: 0 10px 40px rgba(0,0,0,.35); }
+.car-com-retrato .car-texto { max-width: min(900px, 62%); }
+.car-com-retrato .car-autor .car-avatar { display: none; }
+@media (max-width: 700px) {
+  .car-retrato { top: 26px; right: auto; left: 50%; transform: translateX(-50%); width: 150px; }
+  .car-com-retrato .car-texto { max-width: none; }
+}

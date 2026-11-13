@@ -83,6 +83,13 @@
 
 <main class="largura">
 
+<section id="carrossel" class="carrossel" data-v="inicio" aria-roledescription="carrossel" aria-label="Últimas publicações" hidden>
+  <div class="car-trilho" id="car-trilho" tabindex="-1"></div>
+  <button type="button" class="car-seta car-ant" aria-label="Publicação anterior">‹</button>
+  <button type="button" class="car-seta car-prox" aria-label="Próxima publicação">›</button>
+  <div class="car-pontos" id="car-pontos" role="group" aria-label="Escolher publicação"></div>
+</section>
+
 <section id="destaques" class="destaques" data-v="inicio" aria-labelledby="dt-titulo" hidden>
   <div class="secao-cab"><h2 id="dt-titulo">Destaques</h2></div>
   <div class="grade-destaques" id="dt-grade"></div>
@@ -463,6 +470,83 @@
     ops.forEach(function (n) { grade.appendChild(cartaoOpiniao(n)); });
     sec.hidden = !ops.length;
   }
+  // ---------- carrossel: últimas publicações (notícias e opiniões) ----------
+  var CAR_QTD = 5, CAR_TEMPO = 6000, carAtual = 0, carTimer = null, carPausado = false;
+  function slideCarrossel(n, i, total) {
+    var opiniao = n.tipo === "opiniao", pf = opiniao ? perfilDe(n.autor, n) : null;
+    var a = el("a", "car-slide" + (opiniao ? " car-opiniao" : "")); a.href = hrefMateria(n);
+    a.setAttribute("role", "group"); a.setAttribute("aria-roledescription", "slide");
+    a.setAttribute("aria-label", (i + 1) + " de " + total + ": " + n.titulo);
+    var fotoId = opiniao ? "" : n.foto;
+    var f = fotoId ? img(fotoId, "car-foto", n.foto_legenda || n.titulo) : null;
+    if (f) { f.loading = i === 0 ? "eager" : "lazy"; a.appendChild(f); } else a.classList.add("car-sem-foto");
+    if (opiniao) { var ret = img(pf.foto, "car-retrato", n.autor); if (ret) { a.appendChild(ret); a.classList.add("car-com-retrato"); } }
+    var txt = el("div", "car-texto");
+    txt.appendChild(el("span", "car-cat", opiniao ? "Opinião" : (n.categoria || "Notícia")));
+    txt.appendChild(el("h3", "car-titulo", n.titulo));
+    if (n.linha_fina) txt.appendChild(el("p", "car-linha", n.linha_fina));
+    var por = el("p", "car-autor");
+    if (opiniao) { var av = img(pf.foto, "avatar car-avatar", n.autor); if (av) por.appendChild(av); }
+    por.appendChild(el("span", null, (n.autor || "") + (n.publicado_em ? " · " + data(n.publicado_em) : "")));
+    txt.appendChild(por);
+    a.appendChild(txt);
+    return a;
+  }
+  function renderCarrossel() {
+    var sec = document.getElementById("carrossel"), trilho = document.getElementById("car-trilho"), pontos = document.getElementById("car-pontos");
+    var lista = itens.slice(0, CAR_QTD);                                  // itens já vêm do mais recente
+    trilho.textContent = ""; pontos.textContent = "";
+    lista.forEach(function (n, i) {
+      trilho.appendChild(slideCarrossel(n, i, lista.length));
+      var p = el("button", "car-ponto"); p.type = "button"; p.setAttribute("aria-label", "Ir para a publicação " + (i + 1));
+      p.onclick = function () { irPara(i, true); };
+      pontos.appendChild(p);
+    });
+    sec.hidden = !lista.length;
+    sec.classList.toggle("car-unico", lista.length < 2);
+    carAtual = Math.min(carAtual, Math.max(0, lista.length - 1));
+    marcar(); agendar();
+  }
+  function totalSlides() { return document.getElementById("car-trilho").children.length; }
+  function irPara(i, doUsuario) {
+    var t = document.getElementById("car-trilho"), n = totalSlides(); if (!n) return;
+    carAtual = (i + n) % n;
+    t.scrollTo({ left: t.clientWidth * carAtual, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+    marcar();
+    if (doUsuario) agendar();
+  }
+  function marcar() {
+    Array.prototype.forEach.call(document.querySelectorAll("#car-pontos .car-ponto"), function (p, i) {
+      p.setAttribute("aria-current", i === carAtual ? "true" : "false");
+    });
+  }
+  function agendar() {
+    clearTimeout(carTimer);
+    if (carPausado || totalSlides() < 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    carTimer = setTimeout(function () { if (!document.hidden && document.body.getAttribute("data-vista") !== "materia") irPara(carAtual + 1); agendar(); }, CAR_TEMPO);
+  }
+  (function ligarCarrossel() {
+    var sec = document.getElementById("carrossel"), t = document.getElementById("car-trilho");
+    sec.querySelector(".car-ant").onclick = function () { irPara(carAtual - 1, true); };
+    sec.querySelector(".car-prox").onclick = function () { irPara(carAtual + 1, true); };
+    function pausa(v) { carPausado = v; agendar(); }
+    sec.addEventListener("mouseenter", function () { pausa(true); });
+    sec.addEventListener("mouseleave", function () { pausa(false); });
+    sec.addEventListener("focusin", function () { pausa(true); });
+    sec.addEventListener("focusout", function () { pausa(false); });
+    sec.addEventListener("touchstart", function () { pausa(true); }, { passive: true });
+    sec.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft") { e.preventDefault(); irPara(carAtual - 1, true); }
+      if (e.key === "ArrowRight") { e.preventDefault(); irPara(carAtual + 1, true); }
+    });
+    var esp = null;   // arrastar com o dedo: acompanha o slide que ficou na tela
+    t.addEventListener("scroll", function () {
+      clearTimeout(esp);
+      esp = setTimeout(function () { var i = Math.round(t.scrollLeft / Math.max(1, t.clientWidth)); if (i !== carAtual) { carAtual = i; marcar(); } }, 80);
+    }, { passive: true });
+    window.addEventListener("resize", function () { t.scrollLeft = t.clientWidth * carAtual; });
+  })();
+
   function alternarDestaque(id, aviso) {
     var novo = destaques.indexOf(id) >= 0 ? destaques.filter(function (x) { return x !== id; }) : destaques.concat([id]);
     if (novo.length > 3) { if (aviso) aviso.textContent = "Já há 3 destaques. Tire um deles antes de escolher outro."; return; }
@@ -971,7 +1055,7 @@
       itens = ((c && c.noticias) || []).filter(function (x) { return x && x.titulo && x.corpo; })
         .sort(function (a, b) { return String(b.publicado_em || "").localeCompare(String(a.publicado_em || "")); });
       carregou = true; clearTimeout(temporizador);
-      renderCapa(); renderDestaques(); renderOpinioesInicio(); renderColunistas(); rota();
+      renderCapa(); renderCarrossel(); renderDestaques(); renderOpinioesInicio(); renderColunistas(); rota();
     }).catch(function () { clearTimeout(temporizador); estado.textContent = "Não foi possível carregar as publicações agora."; });
     rota();
     return;
@@ -991,7 +1075,7 @@
     db.collection(PERFIS).onSnapshot(function (snap) {
       perfis = {};
       snap.docs.forEach(function (d) { var x = d.data() || {}; if (x.nome) perfis[d.id] = x; });
-      renderCapa(); renderOpinioesInicio(); renderColunistas(); rota();
+      renderCapa(); renderCarrossel(); renderOpinioesInicio(); renderColunistas(); rota();
     }, function () {});
     db.doc(DESTAQUES).onSnapshot(function (s) {
       var d = s.exists ? s.data() : null;
@@ -1002,7 +1086,7 @@
       itens = snap.docs.map(function (d) { var x = Object.assign({}, d.data()); x.id = d.id; return x; })
         .filter(function (x) { return x.titulo && x.corpo; });
       if (!snap.metadata.fromCache) { carregou = true; clearTimeout(temporizador); }
-      renderCapa(); renderDestaques(); renderOpinioesInicio(); renderColunistas(); rota();
+      renderCapa(); renderCarrossel(); renderDestaques(); renderOpinioesInicio(); renderColunistas(); rota();
     }, function () { clearTimeout(temporizador); estado.textContent = "Não foi possível carregar as publicações agora."; });
   });
   rota();
@@ -1018,13 +1102,6 @@
 <script type="application/json" id="in-padrao">
 {
  "blocos": [
-  {
-   "estilo": "destaque",
-   "titulo": "Notícias, opinião e fiscalização da Câmara de Gravataí",
-   "texto": "Um site feito a partir da esquerda: publicamos notícias e colunas sobre a cidade e acompanhamos de perto o que os vereadores propõem, aprovam e deixam de fazer.\n\nQuando usamos dados da Câmara, damos o link para o documento original, para você conferir.",
-   "link_texto": "Leia as notícias",
-   "link_url": "#noticias"
-  },
   {
    "estilo": "cartao",
    "titulo": "Câmara × Propostas",
