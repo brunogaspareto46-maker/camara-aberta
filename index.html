@@ -181,9 +181,22 @@
     }
     if (i < texto.length) alvo.appendChild(document.createTextNode(texto.slice(i)));
   }
-  function paragrafos(alvo, texto) {
+  var RE_MARCA_AUDIO = /^\[(á|a)udio\]$/i;      // linha "[áudio]": o player entra nesse ponto do texto
+  function temMarcaAudio(texto) {
+    return String(texto || "").split(/\n\s*\n/).some(function (b) { return RE_MARCA_AUDIO.test(b.trim()); });
+  }
+  function paragrafos(alvo, texto, n) {
+    var usouAudio = false;
     String(texto || "").replace(/\r/g, "").split(/\n\s*\n/).forEach(function (bloco) {
       bloco = bloco.trim(); if (!bloco) return;
+      if (RE_MARCA_AUDIO.test(bloco)) {
+        if (usouAudio) return;
+        usouAudio = true;
+        var au = n ? blocoAudio(n) : null;
+        if (au) alvo.appendChild(au);
+        else if (!n) alvo.appendChild(el("p", "audio-marcador", "🎧 O áudio aparece aqui"));   // prévia do editor
+        return;
+      }
       var linhas = bloco.split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
       if (/^#{2,3}\s+/.test(bloco) && linhas.length === 1) {
         var h = el("h2", "intertitulo"); emLinha(h, bloco.replace(/^#{2,3}\s+/, "")); alvo.appendChild(h);
@@ -341,6 +354,19 @@
     return box;
   }
 
+  // ---------- áudio da matéria ----------
+  function blocoAudio(n) {
+    var u = urlFoto(n.audio); if (!u) return null;          // mesmo armazenamento das fotos
+    var box = el("figure", "audio-materia");
+    var cab = el("figcaption");
+    cab.appendChild(el("span", "audio-rotulo", "Ouça"));
+    if (n.audio_legenda) cab.appendChild(el("span", "audio-legenda", n.audio_legenda));
+    box.appendChild(cab);
+    var a = document.createElement("audio"); a.controls = true; a.preload = "metadata"; a.src = u;
+    box.appendChild(a);
+    return box;
+  }
+
   // ---------- página da matéria ----------
   function mostrarMateria(id) {
     var n = itens.filter(function (x) { return x.id === id; })[0];
@@ -380,7 +406,9 @@
         if (n.foto_credito) leg.appendChild(document.createTextNode(" (" + n.foto_credito + ")"));
         col.appendChild(leg);
       }
-      var corpo = el("div", "corpo"); paragrafos(corpo, n.corpo); col.appendChild(corpo);
+      // sem a marca [áudio] no texto, o áudio vai antes do texto
+      if (!temMarcaAudio(n.corpo)) { var au = blocoAudio(n); if (au) col.appendChild(au); }
+      var corpo = el("div", "corpo"); paragrafos(corpo, n.corpo, n); col.appendChild(corpo);
       col.appendChild(compartilhar(n));
       if (n.tipo === "opiniao") col.appendChild(el("p", "aviso-opiniao", "Colunas de opinião expressam a visão de quem as assina."));
       if (podeEditar) col.appendChild(acoesEditor(n));
@@ -633,6 +661,7 @@
           // a foto da notícia sai junto, se nenhuma outra publicação usar o mesmo arquivo
           if (assets && idValido(n.foto) && !itens.some(function (x) { return x.id !== n.id && (x.foto === n.foto || x.autor_foto === n.foto); }))
             assets.delete(n.foto).catch(function () {});
+          if (assets && idValido(n.audio)) assets.delete(n.audio).catch(function () {});
           location.hash = "noticias";
         }).catch(function () { c.firstChild.textContent = "Não foi possível apagar agora. Tente de novo."; sim.disabled = false; });
       };
@@ -702,6 +731,17 @@
         else if (f === "citacao") prefixarLinhas("> ", "citação", true);
         else if (f === "lista") prefixarLinhas("- ", "item", true);
         else if (f === "link") abrirLink();
+        else if (f === "audio") {
+          // tira marcas anteriores (só vale uma) e põe a nova num bloco próprio, onde está o cursor
+          var v = ta.value, p0 = ta.selectionStart;
+          var semMarca = v.replace(/(^|\n)\s*\[(á|a)udio\]\s*(?=\n|$)/gi, function (m, ini, x, off) { if (off < p0) p0 -= m.length - ini.length; return ini; });
+          ta.value = semMarca.replace(/\n{3,}/g, "\n\n");
+          p0 = Math.min(p0, ta.value.length);
+          var antes = ta.value.slice(0, p0), depois = ta.value.slice(p0);
+          var ini = antes && !/\n\n$/.test(antes) ? (/\n$/.test(antes) ? "\n" : "\n\n") : "";
+          var fim = depois && !/^\n\n/.test(depois) ? (/^\n/.test(depois) ? "\n" : "\n\n") : "";
+          trocar(p0, p0, ini + "[áudio]" + fim);
+        }
         else if (f === "previa") {
           var ver = previa.hidden;
           previa.textContent = ""; if (ver) paragrafos(previa, ta.value);
@@ -711,13 +751,91 @@
       };
     });
   }
+  // Áudio: o armazenamento do painel aceita MP4/WebM; M4A (que é MP4) entra direto e os demais
+  // formatos são convertidos no navegador para MP4 (AAC, ou Opus quando AAC não está disponível).
+  var muxerPronto = null;
+  function carregarMuxer() {
+    if (window.Mp4Muxer) return Promise.resolve(window.Mp4Muxer);
+    if (!muxerPronto) muxerPronto = new Promise(function (ok, erro) {
+      var s = document.createElement("script"); s.src = "static/vendor/mp4-muxer.js";
+      s.onload = function () { window.Mp4Muxer ? ok(window.Mp4Muxer) : erro(new Error("muxer")); };
+      s.onerror = function () { muxerPronto = null; erro(new Error("muxer")); };
+      document.head.appendChild(s);
+    });
+    return muxerPronto;
+  }
+  function converterAudio(arquivo, progresso) {
+    var TAXA = 48000;
+    if (typeof AudioEncoder === "undefined" || typeof OfflineAudioContext === "undefined")
+      return Promise.reject(new Error("sem_suporte"));
+    return arquivo.arrayBuffer().then(function (buf) {
+      var Ctx = window.AudioContext || window.webkitAudioContext, ctx = new Ctx();
+      return ctx.decodeAudioData(buf).then(function (b) { ctx.close(); return b; }, function (e) { ctx.close(); throw new Error("ilegivel"); });
+    }).then(function (orig) {
+      // mono e 48 kHz: tamanho pequeno e ótimo para voz
+      var off = new OfflineAudioContext(1, Math.ceil(orig.duration * TAXA), TAXA);
+      var src = off.createBufferSource(); src.buffer = orig; src.connect(off.destination); src.start();
+      return off.startRendering();
+    }).then(function (pcm) {
+      var opcoes = [{ codec: "mp4a.40.2", mux: "aac", bitrate: 64000 }, { codec: "opus", mux: "opus", bitrate: 48000 }];
+      function escolher(i) {
+        if (i >= opcoes.length) return Promise.reject(new Error("sem_suporte"));
+        var o = opcoes[i];
+        return AudioEncoder.isConfigSupported({ codec: o.codec, sampleRate: TAXA, numberOfChannels: 1, bitrate: o.bitrate })
+          .then(function (r) { return r.supported ? o : escolher(i + 1); }, function () { return escolher(i + 1); });
+      }
+      return Promise.all([escolher(0), carregarMuxer()]).then(function (r) {
+        var o = r[0], M = r[1];
+        var muxer = new M.Muxer({ target: new M.ArrayBufferTarget(), audio: { codec: o.mux, numberOfChannels: 1, sampleRate: TAXA }, fastStart: "in-memory" });
+        var falha = null;
+        var enc = new AudioEncoder({ output: function (c, m) { muxer.addAudioChunk(c, m); }, error: function (e) { falha = e; } });
+        enc.configure({ codec: o.codec, sampleRate: TAXA, numberOfChannels: 1, bitrate: o.bitrate });
+        var dados = pcm.getChannelData(0), passo = TAXA, pos = 0;
+        return new Promise(function (ok, erro) {
+          (function lote() {
+            if (falha) { erro(falha); return; }
+            var fim = Math.min(pos + passo * 10, dados.length);   // 10 s por vez, sem travar a página
+            for (; pos < fim; pos += passo) {
+              var n = Math.min(passo, dados.length - pos);
+              var ad = new AudioData({ format: "f32-planar", sampleRate: TAXA, numberOfFrames: n, numberOfChannels: 1,
+                timestamp: Math.round(pos / TAXA * 1e6), data: dados.subarray(pos, pos + n) });
+              enc.encode(ad); ad.close();
+            }
+            if (progresso) progresso(Math.round(100 * pos / dados.length));
+            if (pos < dados.length) setTimeout(lote, 0);
+            else enc.flush().then(function () {
+              if (falha) throw falha;
+              muxer.finalize(); enc.close();
+              ok(new Blob([muxer.target.buffer], { type: "video/mp4" }));
+            }).catch(erro);
+          })();
+        });
+      });
+    });
+  }
+  function prepararAudio(arquivo, progresso) {
+    var nome = (arquivo.name || "").toLowerCase(), tipo = arquivo.type || "";
+    if (/\.(m4a|mp4)$/.test(nome) || /^(audio|video)\/(mp4|x-m4a|m4a)$/.test(tipo)) return Promise.resolve({ blob: arquivo, tipo: "video/mp4" });
+    if (/\.webm$/.test(nome) || /^(audio|video)\/webm$/.test(tipo)) return Promise.resolve({ blob: arquivo, tipo: "video/webm" });
+    return converterAudio(arquivo, progresso).then(function (b) { return { blob: b, tipo: "video/mp4" }; });
+  }
+  function mensagemAudio(e) {
+    var m = e && (e.code || e.message);
+    if (m === "too_large") return "O áudio ficou maior que 20 MB. Use um trecho mais curto (até cerca de 40 minutos).";
+    if (m === "sem_suporte") return "Este navegador não consegue converter esse formato. Use o Chrome ou o Edge, ou converta o arquivo para M4A antes.";
+    if (m === "ilegivel") return "Não foi possível ler esse arquivo de áudio. Confira se ele toca no seu computador.";
+    if (m === "muxer") return "Não foi possível carregar o conversor de áudio. Recarregue a página e tente de novo.";
+    return mensagemUpload(e);
+  }
+
   function abrirEditor(existente) {
     slot.textContent = "";
     var form = document.getElementById("nt-form").content.firstElementChild.cloneNode(true);
     ligarFormatacao(form);
     var f = function (nome) { return form.elements[nome]; };
     var status = form.querySelector(".status");
-    var fotos = { foto: existente ? existente.foto || "" : "", autor_foto: existente ? existente.autor_foto || "" : "" };
+    var fotos = { foto: existente ? existente.foto || "" : "", autor_foto: existente ? existente.autor_foto || "" : "",
+                  audio: existente ? existente.audio || "" : "" };
     var enviadasAgora = [];   // fotos enviadas nesta edição (apagadas se a pessoa desistir)
 
     function mostrarFoto(campo) {
@@ -733,10 +851,36 @@
     }
     if (existente) {
       form.querySelector(".ed-titulo").textContent = "Editar publicação";
-      ["tipo", "categoria", "autor", "autor_bio", "titulo", "linha_fina", "foto_legenda", "foto_credito", "corpo"]
+      ["tipo", "categoria", "autor", "autor_bio", "titulo", "linha_fina", "foto_legenda", "foto_credito", "corpo", "audio_legenda"]
         .forEach(function (k) { f(k).value = existente[k] || ""; });
     }
     alternarTipo(); mostrarFoto("foto"); mostrarFoto("autor_foto");
+    // áudio
+    var audioStatus = form.querySelector(".ed-audio-status");
+    function mostrarAudio() {
+      var alvo = form.querySelector("[data-preview-audio]"); alvo.textContent = "";
+      var u = urlFoto(fotos.audio);
+      if (u) { var a = document.createElement("audio"); a.controls = true; a.preload = "metadata"; a.src = u; alvo.appendChild(a); }
+      form.querySelector("[data-remover-audio]").hidden = !fotos.audio;
+    }
+    mostrarAudio();
+    var inAudio = form.querySelector("[data-upload-audio]");
+    if (!assets) inAudio.closest("label").hidden = true;
+    inAudio.onchange = function () {
+      var arq = inAudio.files && inAudio.files[0]; if (!arq) return;
+      var botao = form.querySelector('[type="submit"]'); botao.disabled = true;
+      audioStatus.textContent = "Preparando o áudio…";
+      prepararAudio(arq, function (p) { audioStatus.textContent = "Convertendo o áudio… " + p + "%"; })
+        .then(function (r) {
+          if (r.blob.size > 20 * 1024 * 1024) throw { code: "too_large" };
+          audioStatus.textContent = "Enviando o áudio (" + (r.blob.size / 1048576).toFixed(1) + " MB)…";
+          return assets.upload(r.blob, { type: r.tipo });
+        })
+        .then(function (r) { fotos.audio = r.id; enviadasAgora.push(r.id); mostrarAudio(); audioStatus.textContent = "Áudio pronto."; })
+        .catch(function (e) { audioStatus.textContent = mensagemAudio(e); })
+        .then(function () { botao.disabled = false; inAudio.value = ""; });
+    };
+    form.querySelector("[data-remover-audio]").onclick = function () { fotos.audio = ""; mostrarAudio(); audioStatus.textContent = ""; };
     f("tipo").onchange = alternarTipo;
 
     // colunista que já publicou: preenche foto e minibiografia
@@ -784,6 +928,7 @@
         categoria: f("categoria").value.trim(), autor: f("autor").value.trim(),
         titulo: f("titulo").value.trim(), linha_fina: f("linha_fina").value.trim(), corpo: f("corpo").value.trim()
       };
+      if (fotos.audio) { dados.audio = fotos.audio; dados.audio_legenda = f("audio_legenda").value.trim(); }
       if (opiniao) { dados.autor_bio = f("autor_bio").value.trim(); dados.autor_foto = fotos.autor_foto; }
       else { dados.foto = fotos.foto; dados.foto_legenda = f("foto_legenda").value.trim(); dados.foto_credito = f("foto_credito").value.trim(); }
       if (!dados.titulo || !dados.autor || !dados.corpo) { status.textContent = "Preencha título, autor e texto."; return; }
@@ -795,7 +940,7 @@
       status.textContent = "Publicando…";
       db.collection(COL).doc(id).set(dados).then(function () {
         // fotos enviadas nesta edição e depois trocadas não ficam órfãs
-        enviadasAgora.forEach(function (fid) { if (fid !== dados.foto && fid !== dados.autor_foto && assets) assets.delete(fid).catch(function () {}); });
+        enviadasAgora.forEach(function (fid) { if (fid !== dados.foto && fid !== dados.autor_foto && fid !== dados.audio && assets) assets.delete(fid).catch(function () {}); });
         slot.textContent = ""; btnEscrever.hidden = false;
         location.hash = "materia-" + id;
       }).catch(function (e) {
