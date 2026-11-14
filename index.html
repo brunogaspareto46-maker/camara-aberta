@@ -168,7 +168,15 @@
     if (comHora) s += ", " + d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
     return s;
   }
-  function rotuloTipo(n) { return n.tipo === "opiniao" ? "Opinião" : (n.categoria || "Notícia"); }
+  var AUTOR_EDITORIAL = "Sob Vigia", ARTE_EDITORIAL = "static/editorial.jpg";
+  // foto da publicação; editorial sem foto usa a arte padrão do Sob Vigia
+  function fotoPublicacao(n, cls, alt) {
+    var f = img(n.foto, cls, alt);
+    if (f || n.tipo !== "editorial") return f;
+    var a = el("img", cls); a.src = ARTE_EDITORIAL; a.alt = "Editorial do Sob Vigia"; a.loading = "lazy";
+    return a;
+  }
+  function rotuloTipo(n) { return n.tipo === "opiniao" ? "Opinião" : n.tipo === "editorial" ? "Editorial" : (n.categoria || "Notícia"); }
   function byline(n) { return (n.autor || "") + (n.publicado_em ? " | " + data(n.publicado_em) : ""); }
   function slug(t) {
     return String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
@@ -234,7 +242,7 @@
     txt.appendChild(el("span", "byline", byline(n)));
     if (n.linha_fina && (tamanho === "grande" || tamanho === "destaque")) txt.appendChild(el("p", "linha-fina", n.linha_fina));
     art.appendChild(txt);
-    var f = img(n.foto, "cartao-foto", n.foto_legenda || n.titulo);
+    var f = fotoPublicacao(n, "cartao-foto", n.foto_legenda || n.titulo);
     if (f) art.appendChild(linkMateria(n, f));
     return art;
   }
@@ -384,7 +392,7 @@
     } else {
       var voltar = el("a", "voltar", "← Notícias e opinião"); voltar.href = "#noticias";
       if (n.tipo !== "opiniao") {
-        var hero = img(n.foto, "materia-hero", n.foto_legenda || n.titulo);
+        var hero = fotoPublicacao(n, "materia-hero", n.foto_legenda || n.titulo);
         if (hero) materia.appendChild(hero);
       }
       var col = el("div", "materia");
@@ -404,7 +412,8 @@
       }
       col.appendChild(el("h1", null, n.titulo));
       if (n.linha_fina) col.appendChild(el("p", "linha-fina", n.linha_fina));
-      if (n.tipo !== "opiniao") col.appendChild(el("p", "materia-autor", n.autor || ""));
+      if (n.tipo === "editorial") col.appendChild(el("p", "materia-autor", "Editorial · " + AUTOR_EDITORIAL));
+      else if (n.tipo !== "opiniao") col.appendChild(el("p", "materia-autor", n.autor || ""));
       col.appendChild(el("p", "materia-data", data(n.publicado_em, true)));
       if (n.tipo !== "opiniao" && urlFoto(n.foto) && (n.foto_legenda || n.foto_credito)) {
         var leg = el("p", "foto-legenda");
@@ -418,6 +427,7 @@
       var corpo = el("div", "corpo"); paragrafos(corpo, n.corpo, n); col.appendChild(corpo);
       col.appendChild(compartilhar(n));
       if (n.tipo === "opiniao") col.appendChild(el("p", "aviso-opiniao", "Colunas de opinião expressam a visão de quem as assina."));
+      if (n.tipo === "editorial") col.appendChild(el("p", "aviso-opiniao", "Este editorial expressa a posição do Sob Vigia."));
       if (podeEditar) col.appendChild(acoesEditor(n));
       materia.appendChild(col);
       document.title = n.titulo + " · Sob Vigia";
@@ -477,12 +487,12 @@
     var a = el("a", "car-slide" + (opiniao ? " car-opiniao" : "")); a.href = hrefMateria(n);
     a.setAttribute("role", "group"); a.setAttribute("aria-roledescription", "slide");
     a.setAttribute("aria-label", (i + 1) + " de " + total + ": " + n.titulo);
-    var fotoId = opiniao ? "" : n.foto;
-    var f = fotoId ? img(fotoId, "car-foto", n.foto_legenda || n.titulo) : null;
+    var f = opiniao ? null : fotoPublicacao(n, "car-foto", n.foto_legenda || n.titulo);
     if (f) { f.loading = i === 0 ? "eager" : "lazy"; a.appendChild(f); } else a.classList.add("car-sem-foto");
     if (opiniao) { var ret = img(pf.foto, "car-retrato", n.autor); if (ret) { a.appendChild(ret); a.classList.add("car-com-retrato"); } }
     var txt = el("div", "car-texto");
-    txt.appendChild(el("span", "car-cat", opiniao ? "Opinião" : (n.categoria || "Notícia")));
+    txt.appendChild(el("span", "car-cat", rotuloTipo(n)));
+    if (n.tipo === "editorial") a.classList.add("car-editorial");
     txt.appendChild(el("h3", "car-titulo", n.titulo));
     if (n.linha_fina) txt.appendChild(el("p", "car-linha", n.linha_fina));
     var por = el("p", "car-autor");
@@ -929,9 +939,14 @@
       form.querySelector('[data-remover="' + campo + '"]').hidden = !fotos[campo];
     }
     function alternarTipo() {
-      var op = f("tipo").value === "opiniao";
+      var tipo = f("tipo").value, op = tipo === "opiniao", ed = tipo === "editorial";
       form.querySelector(".so-opiniao").hidden = !op;
       form.querySelector(".so-noticia").hidden = op;
+      form.querySelector(".ed-categoria").hidden = ed;
+      // editorial é assinado pelo próprio site
+      if (ed) { f("autor").dataset.antes = f("autor").value === AUTOR_EDITORIAL ? (f("autor").dataset.antes || "") : f("autor").value; f("autor").value = AUTOR_EDITORIAL; }
+      else if (f("autor").value === AUTOR_EDITORIAL) f("autor").value = f("autor").dataset.antes || "";
+      f("autor").readOnly = ed;
     }
     if (existente) {
       form.querySelector(".ed-titulo").textContent = "Editar publicação";
@@ -1006,9 +1021,9 @@
     };
     form.onsubmit = function (ev) {
       ev.preventDefault();
-      var opiniao = f("tipo").value === "opiniao";
+      var opiniao = f("tipo").value === "opiniao", editorial = f("tipo").value === "editorial";
       var dados = {
-        tipo: opiniao ? "opiniao" : "noticia",
+        tipo: opiniao ? "opiniao" : editorial ? "editorial" : "noticia",
         categoria: f("categoria").value.trim(), autor: f("autor").value.trim(),
         titulo: f("titulo").value.trim(), linha_fina: f("linha_fina").value.trim(), corpo: f("corpo").value.trim()
       };
@@ -1364,7 +1379,7 @@
 })();
 </script>
 <footer class="largura rodape">
-  Atualizado em 13/11/2026. Fonte: portal da Câmara Municipal de Gravataí (cmgravatai.rs.gov.br).
+  Atualizado em 14/11/2026. Fonte: portal da Câmara Municipal de Gravataí (cmgravatai.rs.gov.br).
   Análise: Claude e regras automáticas
   · <a href="sobre.html">sobre nós</a> · <a href="sobre.html#linha-editorial">linha editorial</a>
 </footer>

@@ -523,3 +523,4 @@ a.colunista-nome { text-decoration: none; }
   .car-retrato { top: 26px; right: auto; left: 50%; transform: translateX(-50%); width: 150px; }
   .car-com-retrato .car-texto { max-width: none; }
 }
+.car-editorial .car-cat { background: #fff; color: var(--roxo-forte); }
