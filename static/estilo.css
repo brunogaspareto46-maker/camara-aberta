@@ -524,3 +524,11 @@ a.colunista-nome { text-decoration: none; }
   .car-com-retrato .car-texto { max-width: none; }
 }
 .car-editorial .car-cat { background: #fff; color: var(--roxo-forte); }
+/* filtro de notícias por cidade */
+.nt-cidades { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }
+.nt-cidade { font: 600 .82rem/1 var(--sans, inherit); padding: 8px 14px; border-radius: 999px; border: 1px solid var(--borda);
+  background: var(--superficie, transparent); color: var(--texto); cursor: pointer; }
+.nt-cidade:hover { border-color: var(--destaque); }
+.nt-cidade[aria-pressed="true"] { background: var(--destaque); border-color: var(--destaque); color: var(--fundo); }
+.rotulo-cat a { color: inherit; text-decoration: none; }
+.rotulo-cat a:hover { text-decoration: underline; }

@@ -115,6 +115,7 @@
     
   </div>
   <div id="nt-editor-slot"></div>
+  <div class="nt-cidades" id="nt-cidades" role="group" aria-label="Filtrar por cidade" hidden></div>
   <div class="capa" id="nt-capa">
     <div class="capa-vazia"><p id="nt-estado">Carregando as publicações…</p></div>
   </div>
@@ -177,6 +178,9 @@
     return a;
   }
   function rotuloTipo(n) { return n.tipo === "opiniao" ? "Opinião" : n.tipo === "editorial" ? "Editorial" : (n.categoria || "Notícia"); }
+  // cidade da publicação: notícias e editoriais sem cidade são de Gravataí; colunas só têm cidade se informada
+  function cidadeDe(n) { return String(n.cidade || "").trim() || (n.tipo === "opiniao" ? "" : "Gravataí"); }
+  function rotulo(n) { var c = cidadeDe(n); return (c ? c + " · " : "") + rotuloTipo(n); }
   function byline(n) { return (n.autor || "") + (n.publicado_em ? " | " + data(n.publicado_em) : ""); }
   function slug(t) {
     return String(t).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
@@ -237,7 +241,7 @@
   function cartaoNoticia(n, tamanho) {
     var art = el("article", "cartao-" + tamanho);
     var txt = el("div", "cartao-texto");
-    txt.appendChild(el("span", "rotulo-cat", rotuloTipo(n)));
+    txt.appendChild(el("span", "rotulo-cat", rotulo(n)));
     txt.appendChild(linkMateria(n, el("h3", null, n.titulo)));
     txt.appendChild(el("span", "byline", byline(n)));
     if (n.linha_fina && (tamanho === "grande" || tamanho === "destaque")) txt.appendChild(el("p", "linha-fina", n.linha_fina));
@@ -257,11 +261,30 @@
     art.appendChild(txt);
     return art;
   }
+  // ---------- filtro por cidade (só aparece quando há publicações de mais de uma cidade) ----------
+  var filtroCidade = "", caixaCidades = document.getElementById("nt-cidades");
+  function renderFiltroCidades() {
+    if (!caixaCidades) return;
+    var cidades = [];
+    itens.forEach(function (n) { var c = cidadeDe(n); if (c && cidades.indexOf(c) < 0) cidades.push(c); });
+    cidades.sort(function (a, b) { return a === "Gravataí" ? -1 : b === "Gravataí" ? 1 : a.localeCompare(b, "pt-BR"); });
+    if (filtroCidade && cidades.indexOf(filtroCidade) < 0) filtroCidade = "";
+    caixaCidades.textContent = "";
+    caixaCidades.hidden = cidades.length < 2;
+    if (caixaCidades.hidden) return;
+    [""].concat(cidades).forEach(function (c) {
+      var b = el("button", "nt-cidade", c || "Todas"); b.type = "button";
+      b.setAttribute("aria-pressed", String(c === filtroCidade));
+      b.onclick = function () { filtroCidade = c; renderFiltroCidades(); renderCapa(); };
+      caixaCidades.appendChild(b);
+    });
+  }
   function renderCapa() {
     capa.textContent = "";
-    var noticias = itens.filter(function (n) { return n.tipo !== "opiniao"; });
-    var opinioes = itens.filter(function (n) { return n.tipo === "opiniao"; });
-    if (!itens.length) {
+    var base = filtroCidade ? itens.filter(function (n) { return cidadeDe(n) === filtroCidade; }) : itens;
+    var noticias = base.filter(function (n) { return n.tipo !== "opiniao"; });
+    var opinioes = base.filter(function (n) { return n.tipo === "opiniao"; });
+    if (!base.length) {
       var v = el("div", "capa-vazia");
       v.appendChild(el("p", null, podeEditar ? "Ainda não há publicações. Use o botão Escrever para publicar a primeira notícia ou coluna."
                                               : "Ainda não há publicações."));
@@ -283,15 +306,20 @@
     else op.appendChild(el("p", "mudo", "Nenhuma coluna publicada ainda."));
     if (!principal) op.classList.add("largo");
     capa.appendChild(op);
-    var resto = itens.filter(function (n) { return mostrados.indexOf(n) < 0; });
+    var resto = base.filter(function (n) { return mostrados.indexOf(n) < 0; });
     maisLista.textContent = "";
     resto.forEach(function (n) {
       var li = el("li"); var a = el("a", null, n.titulo); a.href = hrefMateria(n);
-      li.appendChild(a); li.appendChild(el("span", "mudo", " · " + rotuloTipo(n) + " · " + byline(n)));
+      li.appendChild(a); li.appendChild(el("span", "mudo", " · " + rotulo(n) + " · " + byline(n)));
       maisLista.appendChild(li);
     });
     mais.hidden = !resto.length;
     // sugestões de colunistas já publicados no editor
+    var dc = document.getElementById("ed-cidades");
+    if (dc) itens.forEach(function (n) {
+      var c = cidadeDe(n);
+      if (c && !Array.prototype.some.call(dc.options, function (o) { return o.value === c; })) { var o = el("option"); o.value = c; dc.appendChild(o); }
+    });
     var dl = document.getElementById("ed-autores"); if (!dl) return;   // site público: não há editor
     dl.textContent = "";
     Array.from(new Set(Object.keys(perfis).map(function (k) { return perfis[k].nome; }).concat(itens.map(function (n) { return n.autor; })).filter(Boolean))).forEach(function (a) {
@@ -408,7 +436,7 @@
         if (pf.bio) info.appendChild(el("p", "colunista-bio", pf.bio));
         cab.appendChild(info); col.appendChild(cab);
       } else {
-        var cat = el("p"); cat.appendChild(el("span", "rotulo-cat", rotuloTipo(n))); col.appendChild(cat);
+        var cat = el("p"); cat.appendChild(el("span", "rotulo-cat", rotulo(n))); col.appendChild(cat);
       }
       col.appendChild(el("h1", null, n.titulo));
       if (n.linha_fina) col.appendChild(el("p", "linha-fina", n.linha_fina));
@@ -491,7 +519,7 @@
     if (f) { f.loading = i === 0 ? "eager" : "lazy"; a.appendChild(f); } else a.classList.add("car-sem-foto");
     if (opiniao) { var ret = img(pf.foto, "car-retrato", n.autor); if (ret) { a.appendChild(ret); a.classList.add("car-com-retrato"); } }
     var txt = el("div", "car-texto");
-    txt.appendChild(el("span", "car-cat", rotuloTipo(n)));
+    txt.appendChild(el("span", "car-cat", rotulo(n)));
     if (n.tipo === "editorial") a.classList.add("car-editorial");
     txt.appendChild(el("h3", "car-titulo", n.titulo));
     if (n.linha_fina) txt.appendChild(el("p", "car-linha", n.linha_fina));
@@ -950,7 +978,7 @@
     }
     if (existente) {
       form.querySelector(".ed-titulo").textContent = "Editar publicação";
-      ["tipo", "categoria", "autor", "autor_bio", "titulo", "linha_fina", "foto_legenda", "foto_credito", "corpo", "audio_legenda"]
+      ["tipo", "categoria", "cidade", "autor", "autor_bio", "titulo", "linha_fina", "foto_legenda", "foto_credito", "corpo", "audio_legenda"]
         .forEach(function (k) { f(k).value = existente[k] || ""; });
     }
     alternarTipo(); mostrarFoto("foto"); mostrarFoto("autor_foto");
@@ -1024,7 +1052,8 @@
       var opiniao = f("tipo").value === "opiniao", editorial = f("tipo").value === "editorial";
       var dados = {
         tipo: opiniao ? "opiniao" : editorial ? "editorial" : "noticia",
-        categoria: f("categoria").value.trim(), autor: f("autor").value.trim(),
+        categoria: f("categoria").value.trim(), cidade: f("cidade").value.trim() || (opiniao ? "" : "Gravataí"),
+        autor: f("autor").value.trim(),
         titulo: f("titulo").value.trim(), linha_fina: f("linha_fina").value.trim(), corpo: f("corpo").value.trim()
       };
       if (fotos.audio) { dados.audio = fotos.audio; dados.audio_legenda = f("audio_legenda").value.trim(); }
@@ -1070,7 +1099,7 @@
       itens = ((c && c.noticias) || []).filter(function (x) { return x && x.titulo && x.corpo; })
         .sort(function (a, b) { return String(b.publicado_em || "").localeCompare(String(a.publicado_em || "")); });
       carregou = true; clearTimeout(temporizador);
-      renderCapa(); renderCarrossel(); renderDestaques(); renderOpinioesInicio(); renderColunistas(); rota();
+      renderFiltroCidades(); renderCapa(); renderCarrossel(); renderDestaques(); renderOpinioesInicio(); renderColunistas(); rota();
     }).catch(function () { clearTimeout(temporizador); estado.textContent = "Não foi possível carregar as publicações agora."; });
     rota();
     return;
@@ -1090,7 +1119,7 @@
     db.collection(PERFIS).onSnapshot(function (snap) {
       perfis = {};
       snap.docs.forEach(function (d) { var x = d.data() || {}; if (x.nome) perfis[d.id] = x; });
-      renderCapa(); renderCarrossel(); renderOpinioesInicio(); renderColunistas(); rota();
+      renderFiltroCidades(); renderCapa(); renderCarrossel(); renderOpinioesInicio(); renderColunistas(); rota();
     }, function () {});
     db.doc(DESTAQUES).onSnapshot(function (s) {
       var d = s.exists ? s.data() : null;
@@ -1101,7 +1130,7 @@
       itens = snap.docs.map(function (d) { var x = Object.assign({}, d.data()); x.id = d.id; return x; })
         .filter(function (x) { return x.titulo && x.corpo; });
       if (!snap.metadata.fromCache) { carregou = true; clearTimeout(temporizador); }
-      renderCapa(); renderCarrossel(); renderDestaques(); renderOpinioesInicio(); renderColunistas(); rota();
+      renderFiltroCidades(); renderCapa(); renderCarrossel(); renderDestaques(); renderOpinioesInicio(); renderColunistas(); rota();
     }, function () { clearTimeout(temporizador); estado.textContent = "Não foi possível carregar as publicações agora."; });
   });
   rota();
