@@ -302,7 +302,7 @@ h1, h2, h3 { font-variant-numeric: lining-nums; }
 
 /* ---------- página da matéria ---------- */
 .pagina-materia { display: grid; gap: 28px; }
-.materia-hero { width: 100%; max-height: 460px; object-fit: cover; display: block; max-width: 100%; }
+.materia-hero { width: 100%; height: auto; max-height: 85vh; object-fit: contain; display: block; max-width: 100%; background: var(--painel); }
 .materia .voltar { font-size: .9rem; color: var(--mudo); }
 .materia h1 { margin: 6px 0 10px; }
 .materia .linha-fina { font: italic 400 1.25rem/1.5 var(--serif); }
