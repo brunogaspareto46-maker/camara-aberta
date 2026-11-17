@@ -532,3 +532,17 @@ a.colunista-nome { text-decoration: none; }
 .nt-cidade[aria-pressed="true"] { background: var(--destaque); border-color: var(--destaque); color: var(--fundo); }
 .rotulo-cat a { color: inherit; text-decoration: none; }
 .rotulo-cat a:hover { text-decoration: underline; }
+
+/* Abaixo-assinado */
+.aa-etiqueta { display: inline-block; font: 700 .75rem/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; background: var(--roxo-forte); color: #fff; padding: 7px 10px; margin: 0 0 10px; }
+.aa-pedidos li { margin-bottom: 6px; }
+.aa-form { background: var(--roxo-forte); color: #fff; border-top: 6px solid var(--amarelo); padding: 24px clamp(16px, 4vw, 32px) 28px; margin: 32px 0 8px; display: flex; flex-direction: column; gap: 6px; }
+.aa-form h2 { color: #fff; margin: 0 0 8px; border: 0; padding: 0; }
+.aa-form label { font: 700 .75rem/1 var(--sans); letter-spacing: .08em; text-transform: uppercase; margin-top: 10px; }
+.aa-form input[type=text], .aa-form input[type=tel], .aa-form input[type=email] { font: inherit; padding: 12px 14px; border: 2px solid #fff; background: #fff; color: #121212; width: 100%; box-sizing: border-box; }
+.aa-form .aa-consentimento { font: 400 .95rem/1.4 var(--sans); letter-spacing: 0; text-transform: none; display: flex; gap: 10px; align-items: flex-start; margin-top: 16px; }
+.aa-consentimento input { width: 20px; height: 20px; flex: none; margin-top: 1px; accent-color: var(--amarelo); }
+.aa-form .botao { align-self: flex-start; margin-top: 14px; background: var(--amarelo); color: var(--tinta-amarelo); border-color: var(--amarelo); font-size: 1.05rem; padding: 12px 28px; }
+.aa-form .botao:hover { background: #ffd658; border-color: #ffd658; }
+.aa-form .aa-status { font-weight: 600; min-height: 1.2em; margin: 8px 0 0; }
+.aa-form .aa-aviso { font-size: .82rem; opacity: .92; margin: 6px 0 0; }
