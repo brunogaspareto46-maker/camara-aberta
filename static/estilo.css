@@ -552,7 +552,12 @@ a.colunista-nome { text-decoration: none; }
 .corpo .tabela-rolagem:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
 .corpo .tabela-materia { border-collapse: collapse; width: 100%; min-width: 320px; font: 400 .95rem/1.4 var(--sans); }
 .corpo .tabela-materia th, .corpo .tabela-materia td { padding: 9px 12px; border-bottom: 1px solid var(--borda); text-align: left; vertical-align: top; }
-.corpo .tabela-materia th { font-weight: 700; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; border-bottom: 2px solid var(--texto); white-space: nowrap; }
+.corpo .tabela-materia th { font-weight: 700; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; border-bottom: 2px solid var(--texto); }
 .corpo .tabela-materia tbody tr:nth-child(even) { background: var(--painel); }
 .corpo .tabela-materia .al-right { text-align: right; font-variant-numeric: tabular-nums; }
 .corpo .tabela-materia .al-center { text-align: center; }
+@media (max-width: 600px) {
+  .corpo .tabela-materia { font-size: .88rem; min-width: 0; }
+  .corpo .tabela-materia th, .corpo .tabela-materia td { padding: 8px 7px; }
+  .corpo .tabela-materia th { font-size: .7rem; letter-spacing: .03em; }
+}
