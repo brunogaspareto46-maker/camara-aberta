@@ -546,3 +546,13 @@ a.colunista-nome { text-decoration: none; }
 .aa-form .botao:hover { background: #ffd658; border-color: #ffd658; }
 .aa-form .aa-status { font-weight: 600; min-height: 1.2em; margin: 8px 0 0; }
 .aa-form .aa-aviso { font-size: .82rem; opacity: .92; margin: 6px 0 0; }
+
+/* Tabelas no texto das matérias */
+.corpo .tabela-rolagem { overflow-x: auto; margin: 1.4em 0; -webkit-overflow-scrolling: touch; }
+.corpo .tabela-rolagem:focus-visible { outline: 2px solid var(--destaque); outline-offset: 2px; }
+.corpo .tabela-materia { border-collapse: collapse; width: 100%; min-width: 320px; font: 400 .95rem/1.4 var(--sans); }
+.corpo .tabela-materia th, .corpo .tabela-materia td { padding: 9px 12px; border-bottom: 1px solid var(--borda); text-align: left; vertical-align: top; }
+.corpo .tabela-materia th { font-weight: 700; font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; border-bottom: 2px solid var(--texto); white-space: nowrap; }
+.corpo .tabela-materia tbody tr:nth-child(even) { background: var(--painel); }
+.corpo .tabela-materia .al-right { text-align: right; font-variant-numeric: tabular-nums; }
+.corpo .tabela-materia .al-center { text-align: center; }

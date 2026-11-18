@@ -205,6 +205,43 @@
   function temMarcaAudio(texto) {
     return String(texto || "").split(/\n\s*\n/).some(function (b) { return RE_MARCA_AUDIO.test(b.trim()); });
   }
+  // Tabela: | a | b | com a 2ª linha |---|---:| (':' à direita alinha à direita). Mesmas regras do site público.
+  var RE_SEPARADOR = /^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)*\|?$/;
+  function celulas(l) { l = l.trim().replace(/^\|/, "").replace(/\|$/, ""); return l.split("|").map(function (c) { return c.trim(); }); }
+  function tabela(linhas) {
+    if (linhas.length < 2 || !linhas.every(function (l) { return l.charAt(0) === "|"; }) || !RE_SEPARADOR.test(linhas[1])) return null;
+    var alinh = celulas(linhas[1]).map(function (c) {
+      return /:$/.test(c) && !/^:/.test(c) ? "right" : (/^:/.test(c) && /:$/.test(c) ? "center" : "");
+    });
+    var cab = celulas(linhas[0]), n = cab.length;
+    var caixa = el("div", "tabela-rolagem"); caixa.tabIndex = 0;
+    var t = el("table", "tabela-materia"), th = el("thead"), tb = el("tbody");
+    function linha(dest, cs, tag) {
+      var tr = el("tr");
+      for (var i = 0; i < n; i++) { var c = el(tag, alinh[i] ? "al-" + alinh[i] : null); emLinha(c, cs[i] || ""); tr.appendChild(c); }
+      dest.appendChild(tr);
+    }
+    linha(th, cab, "th");
+    linhas.slice(2).forEach(function (l) { linha(tb, celulas(l), "td"); });
+    t.appendChild(th); t.appendChild(tb); caixa.appendChild(t);
+    return caixa;
+  }
+  // Tabela colada do Excel / Google Planilhas (colunas separadas por tabulação) vira | a | b |
+  function tsvParaTabela(txt) {
+    var linhas = txt.replace(/\r/g, "").replace(/\n+$/, "").split("\n");
+    if (linhas.length < 2 || !linhas.every(function (l) { return l.indexOf("\t") >= 0; })) return null;
+    var rows = linhas.map(function (l) { return l.split("\t").map(function (c) { return c.trim().replace(/\|/g, "/"); }); });
+    var n = Math.max.apply(null, rows.map(function (r) { return r.length; }));
+    rows = rows.map(function (r) { while (r.length < n) r.push(""); return r; });
+    var num = /^[-+]?(R\$\s*)?[\d.,]+\s*(%|mi|mil|bi)?$/i;
+    var sep = rows[0].map(function (_, i) {
+      var corpo = rows.slice(1).map(function (r) { return r[i]; }).filter(Boolean);
+      var anos = corpo.every(function (c) { return /^\d{4}$/.test(c); });   // coluna de anos é rótulo
+      return corpo.length && !anos && corpo.every(function (c) { return num.test(c); }) ? "---:" : "---";
+    });
+    function fmt(r) { return "| " + r.join(" | ") + " |"; }
+    return [fmt(rows[0]), fmt(sep)].concat(rows.slice(1).map(fmt)).join("\n");
+  }
   function paragrafos(alvo, texto, n) {
     var usouAudio = false;
     String(texto || "").replace(/\r/g, "").split(/\n\s*\n/).forEach(function (bloco) {
@@ -218,7 +255,10 @@
         return;
       }
       var linhas = bloco.split("\n").map(function (l) { return l.trim(); }).filter(Boolean);
-      if (/^#{2,3}\s+/.test(bloco) && linhas.length === 1) {
+      var tab = tabela(linhas);
+      if (tab) {
+        alvo.appendChild(tab);
+      } else if (/^#{2,3}\s+/.test(bloco) && linhas.length === 1) {
         var h = el("h2", "intertitulo"); emLinha(h, bloco.replace(/^#{2,3}\s+/, "")); alvo.appendChild(h);
       } else if (linhas.every(function (l) { return /^[-•]\s+/.test(l); })) {
         var ul = el("ul");
@@ -821,6 +861,17 @@
       }
       trocar(a, b, novo);
     }
+    function inserirBloco(txt) {           // bloco próprio (linha em branco antes e depois), onde está o cursor
+      var v = ta.value, a = ta.selectionStart, b = ta.selectionEnd, antes = v.slice(0, a), depois = v.slice(b);
+      var ini = antes && !/\n\n$/.test(antes) ? (/\n$/.test(antes) ? "\n" : "\n\n") : "";
+      var fim = depois && !/^\n\n/.test(depois) ? (/^\n/.test(depois) ? "\n" : "\n\n") : "";
+      trocar(a, b, ini + txt + fim);
+    }
+    ta.addEventListener("paste", function (e) {
+      var dados = e.clipboardData && e.clipboardData.getData("text/plain");
+      var md = dados && tsvParaTabela(dados);
+      if (md) { e.preventDefault(); inserirBloco(md); }
+    });
     // link: painel dentro do editor (janelas do navegador são bloqueadas no claude.ai)
     var pl = form.querySelector(".painel-link"), plTexto = pl.querySelector('[data-link="texto"]'),
         plUrl = pl.querySelector('[data-link="url"]'), plAviso = pl.querySelector(".painel-link-aviso"), selLink = [0, 0];
@@ -854,6 +905,7 @@
         else if (f === "citacao") prefixarLinhas("> ", "citação", true);
         else if (f === "lista") prefixarLinhas("- ", "item", true);
         else if (f === "link") abrirLink();
+        else if (f === "tabela") inserirBloco("| Coluna 1 | Coluna 2 |\n|---|---:|\n| item | 0 |\n| item | 0 |");
         else if (f === "audio") {
           // tira marcas anteriores (só vale uma) e põe a nova num bloco próprio, onde está o cursor
           var v = ta.value, p0 = ta.selectionStart;
@@ -1409,7 +1461,7 @@
 })();
 </script>
 <footer class="largura rodape">
-  Atualizado em 17/11/2026. Fonte: portal da Câmara Municipal de Gravataí (cmgravatai.rs.gov.br).
+  Atualizado em 18/11/2026. Fonte: portal da Câmara Municipal de Gravataí (cmgravatai.rs.gov.br).
   Análise: Claude e regras automáticas
   · <a href="sobre.html">sobre nós</a> · <a href="sobre.html#linha-editorial">linha editorial</a>
 </footer>
