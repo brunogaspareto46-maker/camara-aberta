@@ -233,7 +233,7 @@ th { font: 700 .74rem/1.2 var(--sans); text-transform: uppercase; letter-spacing
 .secao-cab h2 { margin-bottom: 14px; }
 @media (max-width: 900px) { .capa { grid-template-columns: 1fr; } }
 
-.materia { max-width: 72ch; margin: 0 auto; }
+.materia { max-width: 72ch; margin: 0 auto; min-width: 0; width: 100%; }
 .materia h1 { font-size: clamp(2rem, 5vw, 3rem); margin-top: 8px; }
 .materia .linha-fina { font: 400 1.2rem/1.5 var(--serif); color: var(--mudo); margin: 0 0 14px; }
 .materia .corpo p { font: 400 1.15rem/1.7 var(--serif); margin: 0 0 1.1em; }
@@ -301,7 +301,7 @@ h1, h2, h3 { font-variant-numeric: lining-nums; }
 .capa-opiniao.largo { grid-column: 1 / -1; }
 
 /* ---------- página da matéria ---------- */
-.pagina-materia { display: grid; gap: 28px; }
+.pagina-materia { display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr); }
 .materia-hero { width: 100%; height: auto; max-height: 85vh; object-fit: contain; display: block; max-width: 100%; background: var(--painel); }
 .materia .voltar { font-size: .9rem; color: var(--mudo); }
 .materia h1 { margin: 6px 0 10px; }
