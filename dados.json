@@ -41,7 +41,7 @@
   {
    "nome": "Carlos Fonseca",
    "partido": "PODE",
-   "projetos": 39,
+   "projetos": 40,
    "aprovados": 17
   },
   {
@@ -119,7 +119,7 @@
   {
    "nome": "Tedesco",
    "partido": "MDB",
-   "projetos": 5,
+   "projetos": 6,
    "aprovados": 0
   },
   {
@@ -227999,6 +227999,413 @@
    "temas": [
     "economia"
    ]
+  },
+  {
+   "id": "PL-105-2026",
+   "tipo": "PL",
+   "numero": "105",
+   "ano": 2026,
+   "ementa": "Institui, no âmbito do Município de Gravataí, o Programa Oftalmologia nas Escolas,destinado à promoção da saúde visual dos alunos da Educação Infantil e do Ensino Fundamental da rede pública municipal de ensino, e dá outras providências.",
+   "autores": [
+    "Carlos Fonseca"
+   ],
+   "situacao": "em_tramitacao",
+   "justificativa": "",
+   "data": "12/11/2026",
+   "url": "https://www.cmgravatai.rs.gov.br/documento/projeto-de-lei-105-2026-368795",
+   "situacao_texto": "Protocolado em 12/11/2026",
+   "situacao_evidencia": "Protocolado em 12/11/2026",
+   "movimentacoes": [
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:30",
+     "texto": "Encaminhado"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:30",
+     "texto": "Encaminhamento simultâneo feito para Comissão de Justiça e Redação | Comissão de Saúde"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "14:59",
+     "texto": "Adicionado na ( Reunião Ordinária de 17.11.2026 )"
+    },
+    {
+     "data": "16 Nov 2026",
+     "hora": "17:04",
+     "texto": "Recebido"
+    },
+    {
+     "data": "12 Nov 2026",
+     "hora": "07:40",
+     "texto": "Protocolado"
+    },
+    {
+     "data": "12 Nov 2026",
+     "hora": "07:40",
+     "texto": "Encaminhado Destinatário: Secretaria Legislativa - Moderador de Sessão"
+    },
+    {
+     "data": "12 Nov 2026",
+     "hora": "07:09",
+     "texto": "Elaborado"
+    }
+   ],
+   "importancia": 3,
+   "importancia_motivo": "Programa de triagem visual de alunos da rede pública municipal, integrado ao SUS.",
+   "redacao_nota": 96.0,
+   "redacao_problemas": [
+    "Pontuação mal espaçada (espaço antes da vírgula ou falta depois)."
+   ],
+   "analise_fonte": "claude",
+   "alertas": [],
+   "impacto": "neutro",
+   "impacto_resumo": "Cria um programa de triagem visual para alunos da Educação Infantil e do Ensino Fundamental da rede municipal, ligado ao SUS e ao Programa Saúde na Escola. A intenção é boa, mas quase tudo é facultativo e condicionado ao orçamento, sem metas, prazos, responsável nem garantia de consulta ou de óculos para quem precisar.",
+   "impacto_a_favor": [
+    "Triagem visual precoce na escola pública pode evitar que dificuldades de visão sejam confundidas com problemas de aprendizagem.",
+    "Prevê ações gratuitas, integradas ao SUS, e proteção dos dados de saúde das crianças pela LGPD."
+   ],
+   "impacto_atencao": [
+    {
+     "criterio": "servicos",
+     "ponto": "As ações “poderão ser realizadas” e a implementação “observará a disponibilidade orçamentária e financeira”: nada obriga o município a fazer a triagem nem a garantir consulta oftalmológica ou óculos."
+    },
+    {
+     "criterio": "competencia",
+     "ponto": "Cria programa a ser executado pelas secretarias do Executivo; possível questionamento de iniciativa."
+    }
+   ],
+   "impacto_confirmacao": "",
+   "temas": [
+    "saude",
+    "educacao"
+   ]
+  },
+  {
+   "id": "PLE-92-2026",
+   "tipo": "PLE",
+   "numero": "92",
+   "ano": 2026,
+   "ementa": "Desafeta o imóvel público destinado à Central de Comercialização Agrícola, autoriza sua alienação e revoga a Lei Municipal nº 3.988/2018.",
+   "autores": [
+    "Poder Executivo"
+   ],
+   "situacao": "em_tramitacao",
+   "justificativa": "",
+   "data": "12/11/2026",
+   "url": "https://www.cmgravatai.rs.gov.br/documento/projeto-de-lei-do-executivo-92-2026-368796",
+   "situacao_texto": "Protocolado em 12/11/2026",
+   "situacao_evidencia": "Protocolado em 12/11/2026",
+   "movimentacoes": [
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:29",
+     "texto": "Encaminhado"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:29",
+     "texto": "Encaminhamento simultâneo feito para Comissão de Justiça e Redação | Comissão de Serviços Públicos e Planejamento Urbano e Rural"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "14:59",
+     "texto": "Adicionado na ( Reunião Ordinária de 17.11.2026 )"
+    },
+    {
+     "data": "16 Nov 2026",
+     "hora": "17:04",
+     "texto": "Recebido"
+    },
+    {
+     "data": "12 Nov 2026",
+     "hora": "10:07",
+     "texto": "Protocolado"
+    },
+    {
+     "data": "12 Nov 2026",
+     "hora": "10:07",
+     "texto": "Encaminhado Destinatário: Secretaria Legislativa - Moderador de Sessão"
+    },
+    {
+     "data": "12 Nov 2026",
+     "hora": "09:52",
+     "texto": "Elaborado"
+    }
+   ],
+   "importancia": 3,
+   "importancia_motivo": "Sem tema de alto impacto identificado; nota baseada no tipo da proposição.",
+   "redacao_nota": 86.0,
+   "redacao_problemas": [
+    "Sem justificativa.",
+    "1 frase(s) com mais de 70 palavras."
+   ],
+   "analise_fonte": "heuristica",
+   "alertas": [],
+   "impacto": "",
+   "impacto_resumo": "",
+   "impacto_a_favor": [],
+   "impacto_atencao": [],
+   "impacto_confirmacao": "",
+   "temas": []
+  },
+  {
+   "id": "PL-106-2026",
+   "tipo": "PL",
+   "numero": "106",
+   "ano": 2026,
+   "ementa": "Institui a Semana Municipal de Valorização do Produtor Rural no Município de Gravataí e dá outras providências.",
+   "autores": [
+    "Tedesco"
+   ],
+   "situacao": "em_tramitacao",
+   "justificativa": "",
+   "data": "16/11/2026",
+   "url": "https://www.cmgravatai.rs.gov.br/documento/projeto-de-lei-106-2026-368849",
+   "situacao_texto": "Protocolado em 16/11/2026",
+   "situacao_evidencia": "Protocolado em 16/11/2026",
+   "movimentacoes": [
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:30",
+     "texto": "Encaminhado"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:30",
+     "texto": "Encaminhamento simultâneo feito para Comissão de Educação, Esporte e Cultura | Comissão de Justiça e Redação"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "14:59",
+     "texto": "Adicionado na ( Reunião Ordinária de 17.11.2026 )"
+    },
+    {
+     "data": "16 Nov 2026",
+     "hora": "17:03",
+     "texto": "Recebido"
+    },
+    {
+     "data": "16 Nov 2026",
+     "hora": "13:20",
+     "texto": "Encaminhado Destinatário: Secretaria Legislativa - Moderador de Sessão"
+    },
+    {
+     "data": "16 Nov 2026",
+     "hora": "13:20",
+     "texto": "Protocolado"
+    },
+    {
+     "data": "16 Nov 2026",
+     "hora": "12:54",
+     "texto": "Elaborado"
+    }
+   ],
+   "importancia": 1,
+   "importancia_motivo": "Data comemorativa: Semana Municipal de Valorização do Produtor Rural.",
+   "redacao_nota": 100.0,
+   "redacao_problemas": [],
+   "analise_fonte": "claude",
+   "alertas": [],
+   "impacto": "simbolico",
+   "impacto_resumo": "Inclui no calendário oficial a Semana Municipal de Valorização do Produtor Rural, na semana do Dia do Agricultor (28 de julho). É data comemorativa: o próprio texto diz que não obriga a realizar eventos nem cria estruturas.",
+   "impacto_a_favor": [
+    "Dá visibilidade à agricultura familiar e às comunidades rurais do município, com sugestão de feiras de produtos locais."
+   ],
+   "impacto_atencao": [
+    {
+     "criterio": "servicos",
+     "ponto": "O art. 5º diz que a semana “não implica a obrigatoriedade de realização de eventos ou a criação de novas estruturas administrativas”: não há política concreta de apoio ao produtor."
+    }
+   ],
+   "impacto_confirmacao": "",
+   "temas": [
+    "economia"
+   ]
+  },
+  {
+   "id": "PLE-93-2026",
+   "tipo": "PLE",
+   "numero": "93",
+   "ano": 2026,
+   "ementa": "Dispõe, em caráter excepcional, sobre o pagamento da gratificação natalina do exercício de 2026 aos servidores e agentes públicos do Poder Executivo Municipal, e dá outras providências.",
+   "autores": [
+    "Poder Executivo"
+   ],
+   "situacao": "aprovado",
+   "justificativa": "",
+   "data": "17/11/2026",
+   "url": "https://www.cmgravatai.rs.gov.br/documento/projeto-de-lei-do-executivo-93-2026-368881",
+   "situacao_texto": "Protocolado em 17/11/2026",
+   "situacao_evidencia": "Aprovado em votação única na Reunião Extraordinária de 17.11.2026",
+   "movimentacoes": [
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:34",
+     "texto": "Aprovado em votação única na Reunião Extraordinária de 17.11.2026"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:05",
+     "texto": "Parecer contrário - Protocolado o documento complementar Parecer 3/2026 do Projeto De Lei Do Executivo 93/2026"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:05",
+     "texto": "Parecer favorável - Protocolado o documento complementar Parecer 4/2026 do Projeto De Lei Do Executivo 93/2026"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:04",
+     "texto": "Recebido"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:04",
+     "texto": "Recebido"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "19:04",
+     "texto": "Encaminhamento simultâneo feito para Comissão de Finanças e Orçamento | Comissão de Justiça e Redação"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "18:51",
+     "texto": "Encaminhado"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "18:51",
+     "texto": "Parecer contrário - Protocolado o documento complementar Parecer 2/2026 do Projeto De Lei Do Executivo 93/2026"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "18:50",
+     "texto": "Parecer favorável - Protocolado o documento complementar Parecer 1/2026 do Projeto De Lei Do Executivo 93/2026"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "18:28",
+     "texto": "Adicionado na ( Reunião Extraordinária de 17.11.2026 )"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "14:59",
+     "texto": "Adicionado na ( Reunião Ordinária de 17.11.2026 )"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "14:52",
+     "texto": "Recebido"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "14:05",
+     "texto": "Protocolado o documento complementar Pedido de Urgência do Executivo 1/2026 do Projeto De Lei Do Executivo 93/2026"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "13:03",
+     "texto": "Protocolado"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "13:03",
+     "texto": "Encaminhado Destinatário: Secretaria Legislativa - Moderador de Sessão"
+    },
+    {
+     "data": "17 Nov 2026",
+     "hora": "11:06",
+     "texto": "Elaborado"
+    }
+   ],
+   "importancia": 4,
+   "importancia_motivo": "Trata de temas de alto impacto (emprego).",
+   "redacao_nota": 82.0,
+   "redacao_problemas": [
+    "Sem justificativa.",
+    "2 frase(s) com mais de 70 palavras."
+   ],
+   "analise_fonte": "heuristica",
+   "alertas": [],
+   "impacto": "",
+   "impacto_resumo": "",
+   "impacto_a_favor": [],
+   "impacto_atencao": [],
+   "impacto_confirmacao": "",
+   "temas": []
+  },
+  {
+   "id": "PLE-94-2026",
+   "tipo": "PLE",
+   "numero": "94",
+   "ano": 2026,
+   "ementa": "Desafeta imóvel do patrimônio público da destinação originária e autoriza o Poder Executivo a conceder o uso de área pública municipal à Associação das Pessoas com Deficiência Visual e Amigos de Gravataí, por tempo determinado, e dá outras providências.",
+   "autores": [
+    "Poder Executivo"
+   ],
+   "situacao": "em_tramitacao",
+   "justificativa": "",
+   "data": "18/11/2026",
+   "url": "https://www.cmgravatai.rs.gov.br/documento/projeto-de-lei-do-executivo-94-2026-368954",
+   "situacao_texto": "Protocolado",
+   "situacao_evidencia": "Protocolado",
+   "movimentacoes": [],
+   "importancia": 5,
+   "importancia_motivo": "Trata de temas de alto impacto (educa, saude, transparencia).",
+   "redacao_nota": 59.0,
+   "redacao_problemas": [
+    "Texto sem articulação (não há “Art. 1º”).",
+    "Não indica cláusula de vigência.",
+    "Sem justificativa.",
+    "2 frase(s) com mais de 70 palavras.",
+    "Palavra repetida em sequência (“o o”, “para para”)."
+   ],
+   "analise_fonte": "heuristica",
+   "alertas": [],
+   "impacto": "",
+   "impacto_resumo": "",
+   "impacto_a_favor": [],
+   "impacto_atencao": [],
+   "impacto_confirmacao": "",
+   "temas": []
+  },
+  {
+   "id": "PLE-95-2026",
+   "tipo": "PLE",
+   "numero": "95",
+   "ano": 2026,
+   "ementa": "Estima a receita e fixa a despesa do Município de Gravataí para o exercício financeiro de 2027.",
+   "autores": [
+    "Poder Executivo"
+   ],
+   "situacao": "em_tramitacao",
+   "justificativa": "",
+   "data": "18/11/2026",
+   "url": "https://www.cmgravatai.rs.gov.br/documento/projeto-de-lei-do-executivo-95-2026-368962",
+   "situacao_texto": "Protocolado",
+   "situacao_evidencia": "Protocolado",
+   "movimentacoes": [],
+   "importancia": 5,
+   "importancia_motivo": "Trata de temas de alto impacto (educa, saude, transparencia).",
+   "redacao_nota": 59.0,
+   "redacao_problemas": [
+    "Texto sem articulação (não há “Art. 1º”).",
+    "Não indica cláusula de vigência.",
+    "Sem justificativa.",
+    "2 frase(s) com mais de 70 palavras.",
+    "Palavra repetida em sequência (“o o”, “para para”)."
+   ],
+   "analise_fonte": "heuristica",
+   "alertas": [],
+   "impacto": "",
+   "impacto_resumo": "",
+   "impacto_a_favor": [],
+   "impacto_atencao": [],
+   "impacto_confirmacao": "",
+   "temas": []
   }
  ]
 }
