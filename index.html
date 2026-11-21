@@ -84,7 +84,7 @@
 
 <main class="largura">
 
-<section id="carrossel" class="carrossel" data-v="inicio" aria-roledescription="carrossel" aria-label="Últimas publicações" hidden>
+<section id="carrossel" class="carrossel" data-v="inicio" aria-roledescription="carrossel" aria-label="Últimas notícias" hidden>
   <div class="car-trilho" id="car-trilho" tabindex="-1"></div>
   <button type="button" class="car-seta car-ant" aria-label="Publicação anterior">‹</button>
   <button type="button" class="car-seta car-prox" aria-label="Próxima publicação">›</button>
@@ -549,7 +549,7 @@
     ops.forEach(function (n) { grade.appendChild(cartaoOpiniao(n)); });
     sec.hidden = !ops.length;
   }
-  // ---------- carrossel: últimas publicações (notícias e opiniões) ----------
+  // ---------- carrossel: últimas notícias (opiniões têm seção própria) ----------
   var CAR_QTD = 5, CAR_TEMPO = 6000, carAtual = 0, carTimer = null, carPausado = false;
   function slideCarrossel(n, i, total) {
     var opiniao = n.tipo === "opiniao", pf = opiniao ? perfilDe(n.autor, n) : null;
@@ -573,7 +573,7 @@
   }
   function renderCarrossel() {
     var sec = document.getElementById("carrossel"), trilho = document.getElementById("car-trilho"), pontos = document.getElementById("car-pontos");
-    var lista = itens.slice(0, CAR_QTD);                                  // itens já vêm do mais recente
+    var lista = itens.filter(function (n) { return (n.tipo || "noticia") === "noticia"; }).slice(0, CAR_QTD);   // só notícias; itens já vêm do mais recente
     trilho.textContent = ""; pontos.textContent = "";
     lista.forEach(function (n, i) {
       trilho.appendChild(slideCarrossel(n, i, lista.length));
