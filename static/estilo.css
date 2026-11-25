@@ -489,7 +489,7 @@ a.colunista-nome { text-decoration: none; }
 .car-slide { position: relative; flex: 0 0 100%; scroll-snap-align: start; aspect-ratio: 16 / 7; min-height: 340px; max-height: 520px;
   overflow: hidden; display: block; color: #fff; text-decoration: none; background: var(--roxo-forte); }
 .car-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.car-slide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,8,32,0) 30%, rgba(20,8,32,.55) 60%, rgba(20,8,32,.92) 100%); }
+.car-slide::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(20,8,32,.05) 15%, rgba(20,8,32,.72) 48%, rgba(20,8,32,.95) 100%); }
 .car-sem-foto { background: radial-gradient(circle at 85% 15%, #6c34a0 0, var(--roxo-forte) 55%, #24103a 100%); }
 .car-sem-foto::after { background: none; }
 .car-texto { position: absolute; left: 0; right: 0; bottom: 0; z-index: 1; padding: 28px clamp(18px, 4vw, 44px) 46px; display: grid; gap: 10px; max-width: 900px; }
@@ -560,4 +560,19 @@ a.colunista-nome { text-decoration: none; }
   .corpo .tabela-materia { font-size: .88rem; min-width: 0; }
   .corpo .tabela-materia th, .corpo .tabela-materia td { padding: 8px 7px; }
   .corpo .tabela-materia th { font-size: .7rem; letter-spacing: .03em; }
+}
+
+/* celular: com foto, a imagem fica em cima e o texto embaixo, em fundo liso (legibilidade) */
+@media (max-width: 700px) {
+  .car-com-foto { aspect-ratio: auto; max-height: none; display: flex; flex-direction: column; }
+  .car-com-foto .car-foto { position: relative; inset: auto; height: auto; aspect-ratio: 16 / 9; flex: none; }
+  .car-com-foto::after { display: none; }
+  .car-com-foto .car-texto { position: relative; flex: 1; align-content: start; background: var(--roxo-forte); padding-top: 18px; padding-bottom: 44px; }
+  .car-com-foto .car-titulo { text-shadow: none; font-size: 1.45rem; }
+}
+/* computador: escurece o lado do texto para a manchete não brigar com a imagem */
+@media (min-width: 701px) {
+  .car-com-foto::after { background: linear-gradient(90deg, rgba(20,8,32,.94) 0, rgba(20,8,32,.86) 42%, rgba(20,8,32,.35) 72%, rgba(20,8,32,.1) 100%),
+    linear-gradient(180deg, rgba(20,8,32,0) 60%, rgba(20,8,32,.6) 100%); }
+  .car-com-foto .car-texto { max-width: min(900px, 64%); }
 }

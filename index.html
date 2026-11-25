@@ -557,7 +557,7 @@
     a.setAttribute("role", "group"); a.setAttribute("aria-roledescription", "slide");
     a.setAttribute("aria-label", (i + 1) + " de " + total + ": " + n.titulo);
     var f = opiniao ? null : fotoPublicacao(n, "car-foto", n.foto_legenda || n.titulo);
-    if (f) { f.loading = i === 0 ? "eager" : "lazy"; a.appendChild(f); } else a.classList.add("car-sem-foto");
+    if (f) { f.loading = i === 0 ? "eager" : "lazy"; a.appendChild(f); a.classList.add("car-com-foto"); } else a.classList.add("car-sem-foto");
     if (opiniao) { var ret = img(pf.foto, "car-retrato", n.autor); if (ret) { a.appendChild(ret); a.classList.add("car-com-retrato"); } }
     var txt = el("div", "car-texto");
     txt.appendChild(el("span", "car-cat", rotulo(n)));
