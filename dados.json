@@ -95,7 +95,7 @@
   {
    "nome": "Paulinho da Farmácia",
    "partido": "PODE",
-   "projetos": 13,
+   "projetos": 14,
    "aprovados": 5
   },
   {
@@ -107,7 +107,7 @@
   {
    "nome": "Roger Corrêa",
    "partido": "PP",
-   "projetos": 28,
+   "projetos": 29,
    "aprovados": 11
   },
   {
@@ -228406,6 +228406,125 @@
    "impacto_atencao": [],
    "impacto_confirmacao": "",
    "temas": []
+  },
+  {
+   "id": "PL-107-2026",
+   "tipo": "PL",
+   "numero": "107",
+   "ano": 2026,
+   "ementa": "Institui o Programa de Incentivo ao Mérito Educacional na Rede Pública Municipal de Ensino de Gravataí.",
+   "autores": [
+    "Paulinho da Farmácia"
+   ],
+   "situacao": "em_tramitacao",
+   "justificativa": "",
+   "data": "18/11/2026",
+   "url": "",
+   "situacao_texto": "Protocolado em 18/11/2026",
+   "situacao_evidencia": "Protocolado em 18/11/2026",
+   "movimentacoes": [
+    {
+     "data": "18/11/2026",
+     "hora": "",
+     "texto": "Protocolado"
+    }
+   ],
+   "importancia": 2,
+   "importancia_motivo": "Programa de premiação estudantil facultativo, sem orçamento nem metas definidos.",
+   "redacao_nota": 65.0,
+   "redacao_problemas": [
+    "Numeração duplicada e fora do padrão da LC 95/1998: “Art. 2º 2º São princípios”, “Art.3º”, “Art.4°” (sinal de grau no lugar do ordinal) e “Art.13° .”.",
+    "Parágrafo deslocado: um “§ 2º” sobre a premiação especial do art. 8º aparece depois do art. 12, sem § 1º correspondente.",
+    "Erros de concordância e grafia: “Fica Instituído o Programa (...) destinados aos estudantes”."
+   ],
+   "analise_fonte": "claude",
+   "alertas": [],
+   "impacto": "neutro",
+   "impacto_resumo": "Cria o programa “Estrelas da Educação”, de premiação de estudantes do ensino fundamental (inclusive EJA) por mérito acadêmico, evolução na aprendizagem e destaque científico, tecnológico e cultural, além de reconhecimento honorífico a escolas e profissionais. Tudo é facultativo (“poderá”) e depende de regulamento e de dotação orçamentária, sem valores, metas nem prazos.",
+   "impacto_a_favor": [
+    "Inclui a categoria “Evolução Educacional”, que reconhece o progresso de cada estudante a partir do seu ponto de partida, e não só quem já tem as melhores notas.",
+    "Exige critérios divulgados previamente, proíbe publicidade comercial nas ações com parceiros privados e exige consentimento dos responsáveis para divulgar nome e imagem dos premiados (LGPD)."
+   ],
+   "impacto_atencao": [
+    {
+     "criterio": "servicos",
+     "ponto": "Todas as ações “poderão” ser realizadas e as despesas correm por “dotações orçamentárias próprias, suplementadas se necessário”: nada obriga o município a executar o programa nem define quanto será gasto."
+    },
+    {
+     "criterio": "desigualdade",
+     "ponto": "Premiação por desempenho tende a favorecer estudantes com mais apoio em casa; o efeito depende de como o regulamento equilibrar mérito e evolução."
+    },
+    {
+     "criterio": "competencia",
+     "ponto": "Projeto de vereador que cria programa a ser executado pela Secretaria de Educação: possível questionamento de iniciativa."
+    },
+    {
+     "criterio": "direitos",
+     "ponto": "O reconhecimento dos profissionais da educação é “exclusivamente honorífico” e “não gerará vantagem pecuniária ou funcional”: homenagem sem valorização salarial."
+    }
+   ],
+   "impacto_confirmacao": "",
+   "temas": [
+    "educacao"
+   ]
+  },
+  {
+   "id": "PL-108-2026",
+   "tipo": "PL",
+   "numero": "108",
+   "ano": 2026,
+   "ementa": "Institui o Programa Municipal de Preparação e Inclusão de Jovens PCD para o Mundo do Trabalho no Município de Gravataí e dá outras providências.",
+   "autores": [
+    "Roger Corrêa"
+   ],
+   "situacao": "em_tramitacao",
+   "justificativa": "",
+   "data": "24/11/2026",
+   "url": "",
+   "situacao_texto": "Protocolado em 24/11/2026",
+   "situacao_evidencia": "Protocolado em 24/11/2026",
+   "movimentacoes": [
+    {
+     "data": "24/11/2026",
+     "hora": "",
+     "texto": "Protocolado"
+    }
+   ],
+   "importancia": 3,
+   "importancia_motivo": "Programa de preparação e inclusão profissional de jovens com deficiência, com acompanhamento nas empresas.",
+   "redacao_nota": 88.0,
+   "redacao_problemas": [
+    "Incisos fundidos na mesma linha: “V – preparação para entrevistas e processos seletivos; VI – orientação e acompanhamento das famílias”.",
+    "Uso da sigla informal “PCD” no texto legal, em vez de “pessoa com deficiência”, termo da Lei Brasileira de Inclusão (Lei 13.146/2015).",
+    "Cláusula de vigência na “data da sua promulgação”, quando o usual é a data de publicação."
+   ],
+   "analise_fonte": "claude",
+   "alertas": [],
+   "impacto": "neutro",
+   "impacto_resumo": "Cria programa de preparação e inclusão de jovens com deficiência no mundo do trabalho, com avaliação individual, plano de desenvolvimento, cursos, orientação às famílias, capacitação das empresas e acompanhamento após a contratação. A intenção é boa, mas tudo é facultativo, depende de parcerias e de regulamentação, sem metas, prazos nem orçamento.",
+   "impacto_a_favor": [
+    "Trata a inclusão como responsabilidade também das empresas, prevendo capacitação de gestores e equipes e acompanhamento da permanência do jovem no emprego.",
+    "Prevê plano individual, gratuidade e respeito à acessibilidade, autonomia e dignidade de cada participante."
+   ],
+   "impacto_atencao": [
+    {
+     "criterio": "servicos",
+     "ponto": "O programa “poderá” ser executado por parcerias e regulamentado pelo Executivo, sem metas, prazos, orçamento definido nem responsável."
+    },
+    {
+     "criterio": "competencia",
+     "ponto": "Projeto de vereador que cria programa a ser executado pelo Executivo: possível questionamento de iniciativa."
+    },
+    {
+     "criterio": "transparencia",
+     "ponto": "Não prevê relatório, número de vagas nem avaliação pública dos resultados ou das parcerias com entidades e empresas."
+    }
+   ],
+   "impacto_confirmacao": "",
+   "temas": [
+    "pcd",
+    "economia"
+   ]
   }
  ]
 }
