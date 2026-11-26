@@ -125,7 +125,7 @@
   {
    "nome": "Vitalina Gonçalves",
    "partido": "PT",
-   "projetos": 14,
+   "projetos": 15,
    "aprovados": 9
   }
  ],
@@ -228524,6 +228524,61 @@
    "temas": [
     "pcd",
     "economia"
+   ]
+  },
+  {
+   "id": "PL-109-2026",
+   "tipo": "PL",
+   "numero": "109",
+   "ano": 2026,
+   "ementa": "Altera a Lei Municipal nº 5.146, de 18 de novembro de 2026, para estabelecer garantias aos beneficiários da operação de crédito destinada ao pagamento da gratificação natalina do exercício de 2026.",
+   "autores": [
+    "Vitalina Gonçalves"
+   ],
+   "situacao": "em_tramitacao",
+   "justificativa": "",
+   "data": "26/11/2026",
+   "url": "https://www.cmgravatai.rs.gov.br/documento/projeto-de-lei-109-2026-369270",
+   "situacao_texto": "Protocolado em 26/11/2026",
+   "situacao_evidencia": "Protocolado em 26/11/2026",
+   "movimentacoes": [
+    {
+     "data": "26/11/2026",
+     "hora": "",
+     "texto": "Protocolado"
+    }
+   ],
+   "importancia": 4,
+   "importancia_motivo": "Garantias legais para os servidores que contratarem o empréstimo do 13º de 2026, atingindo o funcionalismo do Executivo.",
+   "redacao_nota": 85.0,
+   "redacao_problemas": [
+    "O caput do art. 2º termina em ponto (“acrescido do seguinte parágrafo único.”) em vez de dois-pontos antes do dispositivo acrescentado.",
+    "O art. 5º-B, acrescentado pelo art. 3º, abre aspas e não as fecha antes do art. 5º-C, e os dispositivos acrescentados não trazem a marca (NR) ou (AC).",
+    "Citação da lei alterada sem padrão: ora “Lei Municipal nº 5.146, de 18 de novembro de 2026”, ora “Lei Municipal nº 5.146, de 2026”."
+   ],
+   "analise_fonte": "claude",
+   "alertas": [],
+   "impacto": "positivo",
+   "impacto_resumo": "Protege os servidores que optarem pelo empréstimo para receber o 13º de 2026 em dezembro: obriga o Município a pagar o banco diretamente, inclusive juros e encargos, e proíbe o banco de cobrar o servidor, reter o dinheiro para quitar dívidas antigas, descontar em folha ou negativar o nome dele se a prefeitura atrasar o repasse. Garantias concretas e obrigatórias para trabalhadores que já tiveram o 13º atrasado.",
+   "impacto_a_favor": [
+    "Proíbe a instituição financeira de reter ou compensar o crédito para quitar dívidas anteriores, como cheque especial, garantindo que o servidor receba o valor integral do 13º.",
+    "Se o Município atrasar ou não repassar, o problema fica entre Município e banco, sem cobrança, protesto ou inscrição do servidor em cadastro de inadimplentes.",
+    "Impede a recusa automática de servidores com restrição cadastral e veda condicionar o crédito à compra de produto, transferência da folha ou desistência de ação judicial."
+   ],
+   "impacto_atencao": [
+    {
+     "criterio": "competencia",
+     "ponto": "Projeto de vereador que impõe cláusulas ao contrato do Executivo com a instituição financeira e obrigações ao próprio banco: possível questionamento de iniciativa e de competência para regular operação de crédito."
+    },
+    {
+     "criterio": "servicos",
+     "ponto": "Não resolve o problema de fundo: o 13º continua parcelado ou dependente de empréstimo, e a eficácia depende de o banco aceitar as cláusulas no instrumento com o Município."
+    }
+   ],
+   "impacto_confirmacao": "2 de 2 avaliações",
+   "temas": [
+    "gestao",
+    "financas"
    ]
   }
  ]
