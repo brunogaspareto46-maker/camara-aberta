@@ -1,5 +1,5 @@
 {
- "gerado_em": "2026-11-26",
+ "gerado_em": "2026-11-27",
  "dados_de_exemplo": false,
  "vereadores_atuais": [
   {
@@ -29854,19 +29854,27 @@
    ],
    "importancia": 2,
    "importancia_motivo": "Política de Linguagem Simples na Administração Pública.",
-   "redacao_nota": 80.0,
+   "redacao_nota": 96.0,
    "redacao_problemas": [
-    "Sem justificativa.",
-    "Somente a ementa está disponível; texto integral ausente."
+    "1 frase(s) com mais de 70 palavras."
    ],
    "analise_fonte": "claude",
    "alertas": [],
-   "impacto": "positivo",
-   "impacto_resumo": "Cria política de linguagem simples na administração municipal, o que facilita o entendimento de serviços e direitos por quem tem menos escolaridade.",
+   "impacto": "preocupante",
+   "impacto_resumo": "Cria a Política Municipal de Linguagem Simples, mas inclui a proibição da linguagem neutra na comunicação da prefeitura e da Câmara, medida que atinge pessoas LGBT+ e restringe a forma de expressão. A parte de linguagem simples repete a Lei federal 15.263/2025, que já vale para os municípios.",
    "impacto_a_favor": [
-    "Torna a comunicação pública mais acessível, favorecendo o acesso a direitos e o controle social."
+    "As técnicas de linguagem simples, como frases curtas e explicação de termos técnicos, facilitam o acesso de quem tem menos escolaridade às informações públicas."
    ],
-   "impacto_atencao": [],
+   "impacto_atencao": [
+    {
+     "criterio": "direitos",
+     "ponto": "Determina “não usar novas formas de flexão de gênero e de número das palavras da língua portuguesa”, ou seja, proíbe a linguagem neutra, pauta que estigmatiza pessoas não binárias e LGBT+."
+    },
+    {
+     "criterio": "competencia",
+     "ponto": "O STF tem derrubado leis municipais sobre linguagem neutra por invadirem a competência da União; o tema já é tratado em lei federal."
+    }
+   ],
    "impacto_confirmacao": "2 de 2 avaliações",
    "temas": [
     "gestao"
